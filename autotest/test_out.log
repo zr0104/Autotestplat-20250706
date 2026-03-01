@@ -1,0 +1,66 @@
+【接口名称】: 用户列表接口-随机数字参数4mod
+【请求方式】: POST
+Traceback (most recent call last):
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 169, in _new_conn
+    conn = connection.create_connection(
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\connection.py", line 96, in create_connection
+    raise err
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\connection.py", line 86, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 699, in urlopen
+    httplib_response = self._make_request(
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 394, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 234, in request
+    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
+  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1230, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1276, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1225, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1004, in _send_output
+    self.send(msg)
+  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 944, in send
+    self.connect()
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 200, in connect
+    conn = self._new_conn()
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 181, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x06E91EF8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\adapters.py", line 440, in send
+    resp = conn.urlopen(
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 755, in urlopen
+    retries = retries.increment(
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\retry.py", line 574, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x06E91EF8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 749, in interface_test_start
+    response,cookie = Method_POST(url,body,head,body_format,is_out)
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 819, in Method_POST
+    r = request_post(url, body, head, body_format)
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 778, in request_post
+    r = session.post(url,body,headers = head)
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 577, in post
+    return self.request('POST', url, data=data, json=json, **kwargs)
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 529, in request
+    resp = self.send(prep, **send_kwargs)
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 645, in send
+    r = adapter.send(request, **kwargs)
+  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x06E91EF8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+

@@ -1,0 +1,104 @@
+﻿<!Doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+<!---------------------------------------------------------
+Auther:：Fin;  Version：Autotestplat-V6.0
+----------------------------------------------------------->
+<head>
+    <meta charset="UTF-8">
+    <title> AI测试用例</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/static/css/fileinput.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/select2.min.css" />
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/select2.min.js"></script>
+    <script src="/static/js/select2.full.min.js"></script>
+    <script src="/static/js/public.js"></script>
+    <script type="text/javascript" charset="gbk" src="/static/js/fileinput.min.js"></script>
+    <script src="/static/js/retoaitestcase.js"></script>
+    <script>
+        window.onload = function(){
+            if(loginVerify() == 200){
+                infoInit()
+            }
+            var selectElement = document.getElementById('select-option');
+            var options = selectElement.options;
+            for (var i = 0; i < options.length; i++) {
+                var p_name="{{ product_name }}".substring(0, 15)
+                if (options[i].text.substring(0, 14) === "{{ product_name }}".substring(0, 14)) {
+                    options[i].style.display = 'none';
+                    break;
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+     {% include "nav.html" %}
+
+    <div id="outterDiv" class="hk-wrapper screenHeight">
+        <div class="container" style="padding: 70px 20px; max-width: 1800px;">
+        <section class="hk-sec-wrapper">
+{#            <div class="row" style="padding: 0px 0px; margin: 10px 0;" id="searchFields">#}
+{#                <button class="btn btn-primary btn-sm" style="margin-left: 5%;width: 57px;height: 34px;font-size: 14px" onclick="searchClick()">查询</button>#}
+{#                <button class="btn btn-primary btn-sm" style="margin-left: 20px;width: 57px;height: 34px;font-size: 14px" onclick="showAdd()">新增</button>#}
+{#            </div>#}
+            <hr>
+                        <table id="table_title" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="dt-head-center" style="width: 5%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">用例编号</th>
+                                    <th class="dt-head-center" style="width: 15%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">用例名称</th>
+                                    <th class="dt-head-center" style="width: 8%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">测试结果</th>
+                                    <th class="dt-head-center" style="width: 6%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">创建人</th>
+                                    <th class="dt-head-center" style="width: 11%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">创建时间</th>
+                                    <th class="dt-head-center" style="width: 7%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">产品</th>
+                                    <th class="dt-head-center" style="width: 5%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">排序</th>
+                                    <th class="dt-head-center" style="width: 14%;text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div style="margin-top: -22px">
+                            {% for rec in reToCase_result %}
+                                <div class="panel-group" id="accordion">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading" style="background-color: white;">
+                                            <h4 id="table_api_info" class="panel-title" style="font-size: 14px">
+                                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter }}">
+                                                    <div class="row">
+                                                        <div class="col-md-1" style="text-align: left;">{{ forloop.counter }}</div>
+                                                        <div id="table_testcase_name" class="col-md-3" style="white-space: nowrap;overflow: hidden;text-align: left;margin-left: 0px;width: 320px">{{ rec.ai_testcase_name }}</div>
+                                                        <div id="table_charger" class="col-md-2" style="white-space: nowrap;overflow: hidden;text-align: left;margin-left: -70px;width: 160px">{{ rec.tester }}</div>
+                                                        <div id="table_create_time" class="col-md-1" style="white-space: nowrap;overflow: hidden;text-align: left;margin-left: 40px;width: 160px">{{ rec.create_time  }}</div>
+                                                        <div id="table_requirements_id" class="col-md-1" style="white-space: nowrap;overflow: hidden;text-align: left;">{{ rec.requirements_id }}</div>
+                                                        <div id="table_product_id" class="col-md-1" style="white-space: nowrap;overflow: hidden;text-align: left;">{{ rec.product_id }}</div>
+                                                    </div>
+                                                </a>
+                                            </h4>
+                                        </div>
+
+                                    </div>
+                                    </div>
+                            {% endfor %}
+                        </div>
+        <br>
+        <div class="form-group">
+            <div class="row">
+            <div class="col-md-9">
+              <button id="search_button" class="btn btn-primary" style="margin-left: 60%;width: 57px;height: 34px;font-size: 14px"  type="submit" onclick="goBack()">返回</button>
+            </div>
+            </div>
+        </div>
+
+        </section>
+        </div>
+    </div>
+
+
+
+</body>
+</html>
+

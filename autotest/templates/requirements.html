@@ -1,0 +1,261 @@
+<!Doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+<!---------------------------------------------------------
+Auther:：Fin;  Version：Autotestplat-V6.0
+----------------------------------------------------------->
+<head>
+    <meta charset="UTF-8">
+    <title> 迭代需求</title>
+    <link href="/static/dist/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/dt.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/navbar.css" rel="stylesheet" type="text/css">
+    <script src="/static/vendors/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/vendors/popper.js/dist/umd/popper.min.js"></script>
+    <script src="/static/src/localfiles/bootstrap.min.js"></script>
+    <script src="/static/src/localfiles/jquery.dataTables.min.js"></script>
+    <script src="/static/src/localfiles/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/vendors/laydate/laydate.js" type="text/javascript"></script>
+    <script src="/static/js/public.js"></script>
+    <script src="/static/js/requirements.js"></script>
+    <script>
+        window.onload = function(){
+            if(loginVerify() == 200){
+                infoInit()
+            }
+            var selectElement = document.getElementById('select-option');
+            var options = selectElement.options;
+            for (var i = 0; i < options.length; i++) {
+                var p_name="{{ product_name }}".substring(0, 15)
+                if (options[i].text.substring(0, 14) === "{{ product_name }}".substring(0, 14)) {
+                    options[i].style.display = 'none';
+                    break;
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+     {% include "nav.html" %}
+
+    <div id="outterDiv" class="hk-wrapper screenHeight">
+        <div class="container" style="padding: 70px 20px;margin: -15px 0;margin-right: 0px; max-width: 1800px;">
+        <section class="hk-sec-wrapper">
+            <div class="row" style="padding: 0px 0px; margin: -15px 0;margin-right: 0px">
+            <span style="font-size: 12px;height: 35px" class="input-group-text">迭代版本: </span>
+                <select id="select-iteration-option" name="setInput"  onchange="saveIterationOption()">
+                        <option>
+                                 {% if iteration_version == '' %}
+                                       ------
+                                 {% else %}
+                                     {{ iteration_version }}
+                                 {% endif %}
+                        </option>
+                        {% for iteration in iteration_alls %}
+                        <option>
+                        {% if iteration.iteration_version == iteration_version %}
+                            {{ iteration.iteration_version }} ✓
+                        {% else %}
+                            {{ iteration.iteration_version }}
+                       {% endif %}
+                       </option>
+                       {% endfor %}
+                    </select>
+            </div>
+
+            <br><br>
+
+            <div class="row" style="padding: 0px 0px; margin: -15px 0;margin-left: 0px" id="searchFields">
+                <div class="input-group"  style="width: 30%; margin-right: 20px;" >
+                    <span style="font-size: 12px;height: 35px" class="input-group-text">需求名称: </span>
+                    <input name="searchField" style="font-size: 12px;height: 35px" class="form-control" placeholder="--请输入--" >
+                </div>
+                <div class="input-group"  style="width: 30%; margin-right: 20px;">
+                    <span style="font-size: 12px;height: 35px" class="input-group-text">需求说明: </span>
+                    <input name="searchField" style="font-size: 12px;height: 35px" class="form-control" placeholder="--请输入--" >
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-left: 5%;width: 57px;height: 34px;font-size: 14px" onclick="searchClick()">查询</button>
+                <button class="btn btn-primary btn-sm" style="margin-left: 20px;width: 57px;height: 34px;font-size: 14px" onclick="showAddModal(this)">添加</button>
+            </div>
+
+            <br>
+
+{#            <div class="table-responsive">#}
+            <table id="table" class="table table-hover" data-sort="false">
+                <hr>
+                <thead>
+                    <tr>
+                        <th style="width: 30px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">ID</th>
+                        <th style="width: 150px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">需求描述</th>
+                        <th style="width: 100px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">需求类型</th>
+                         <th style="width: 100px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">指派给(测试)</th>
+                        <th style="width: 50px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">创建人</th>
+                        <th style="width: 50px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">创建时间</th>
+                        <th style="width: 200px;text-align: left; line-height: 0px; padding-top: 0px;font-size:14px;font-weight: bold; ">操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+        </section>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">添加需求</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>迭代版本</span>
+{#                        <input name="addInput1" class="form-control" placeholder="--请输入--">#}
+                         <select id="select-iteration-option" name="addInput1">
+                        <option>
+                                 {% if iteration_version == '' %}
+                                       ------
+                                 {% else %}
+                                     {{ iteration_version }}
+                                 {% endif %}
+                        </option>
+                        {% for iteration in iteration_alls %}
+                        <option>
+                        {% if iteration.iteration_version == iteration_version %}
+                            {{ iteration.iteration_version }} ✓
+                        {% else %}
+                            {{ iteration.iteration_version }}
+                       {% endif %}
+                       </option>
+                       {% endfor %}
+                    </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求描述</span>
+                        <textarea name="addInput1" class="form-control" placeholder="--请输入--" style="height:120px;"></textarea>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求类型</span>
+                        <input name="addInput1" class="form-control" placeholder="--请输入--">
+                    </div>
+                </div>
+                <button class="btn btn-success " style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="add()">确 定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modifyModal" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">修改需求</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求编码</span>
+                        <input name="modInput" disabled="disabled" class="form-control" placeholder="--请输入--">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求描述</span>
+                        <textarea name="modInput" class="form-control" placeholder="--请输入--" style="height:120px;"></textarea>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>指派给(测试)</span>
+                        <input name="modInput" class="form-control" placeholder="--请输入--">
+                    </div>
+                </div>
+                <button class="btn btn-success" style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="mod()">保 存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reToCaseModal" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">需求生成测试用例</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求编码</span>
+                        <input name="reToCaseInput" disabled="disabled" class="form-control" placeholder="--请输入--">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>需求描述</span>
+                        <input name="reToCaseInput" class="form-control" placeholder="--请输入--">
+                    </div>
+
+                </div>
+                <button class="btn btn-success" style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="reTotestcase()">确 定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">删除确认</h5>
+                    <button class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;">需求编码</span>
+                        <input name="delInput" disabled="disabled" class="form-control">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <span class="input-group-text" style="width: 130px; padding-left: 25px;">需求名称</span>
+                        <input name="delInput" disabled="disabled" class="form-control">
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="del(this)">确 定</button>
+            </div>
+        </div>
+    </div>
+
+   <div id="tipsModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+        <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border: 1px solid black; width: 300px; text-align: center;">
+            <span class="close" style="float: right; cursor: pointer; font-size: 20px;">&times;</span>
+            <p id="modalMessage">本地AI正在用例中，请稍等5-10分钟...</p>
+        </div>
+    </div>
+
+</body>
+<script>
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    document.querySelector('.btn-success').onclick = function() {
+        document.getElementById('tipsModal').style.display = 'block';
+        reTotestcase();
+    };
+
+    document.querySelector('#tipsModal .close').onclick = function() {
+        document.getElementById('tipsModal').style.display = 'none';
+    };
+
+    window.onclick = function(event) {
+        if (event.target === document.getElementById('tipsModal')) {
+            document.getElementById('tipsModal').style.display = 'none';
+        }
+    };
+
+});
+
+</script>
+
+</html>
+
