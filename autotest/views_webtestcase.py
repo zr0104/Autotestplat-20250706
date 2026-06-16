@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V5.0
 ############################################
 import time,json,pymysql,os

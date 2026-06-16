@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V2.7
 ############################################
 import json,time,random

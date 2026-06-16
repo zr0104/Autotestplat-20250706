@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V2.3
 ############################################
 from __future__ import absolute_import

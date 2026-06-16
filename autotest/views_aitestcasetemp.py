@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V6.0
 ############################################
 import time,json,os
@@ -229,11 +229,22 @@ def modAitestcase(request):
         delete_flag = 'N'
         AutotestplatAiTestcaseTemp.objects.filter(ai_testcase_code=ai_testcase_code).delete()
         time.sleep(1)
-        for i in range(len(raw_data['moddataObj']['modcaseStepList'])):
+        
+        modcaseStepList = raw_data['moddataObj']['modcaseStepList']
+        modcaseStepList_objname = raw_data['moddataObj']['modcaseStepList_objname']
+        modcaseStepList_findmethod = raw_data['moddataObj']['modcaseStepList_findmethod']
+        
+        min_length = min(len(modcaseStepList), len(modcaseStepList_objname), len(modcaseStepList_findmethod))
+        
+        for i in range(min_length):
             id = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))
-            testcase_step = raw_data['moddataObj']['modcaseStepList'][i]
-            testcase_objname = raw_data['moddataObj']['modcaseStepList_objname'][i]
-            testcase_findmethod = raw_data['moddataObj']['modcaseStepList_findmethod'][i]
+            testcase_step = modcaseStepList[i]
+            testcase_objname = modcaseStepList_objname[i] if i < len(modcaseStepList_objname) else ''
+            testcase_findmethod = modcaseStepList_findmethod[i] if i < len(modcaseStepList_findmethod) else ''
+            
+            if not testcase_objname or not testcase_findmethod:
+                continue
+                
             time.sleep(1)
             modAiTestcase = AutotestplatAiTestcase(id=id,ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,
                                                ai_testcase_result=ai_testcase_result, creator=username,create_time=create_time,
@@ -262,11 +273,22 @@ def copyAitestcase(request):
         ai_testcase_name = raw_data['copydataObj']['ai_testcase_name']
         delete_flag = 'N'
         time.sleep(1)
-        for i in range(len(raw_data['copydataObj']['copycaseStepList'])):
+        
+        copycaseStepList = raw_data['copydataObj']['copycaseStepList']
+        copycaseStepList_objname = raw_data['copydataObj']['copycaseStepList_objname']
+        copycaseStepList_findmethod = raw_data['copydataObj']['copycaseStepList_findmethod']
+        
+        min_length = min(len(copycaseStepList), len(copycaseStepList_objname), len(copycaseStepList_findmethod))
+        
+        for i in range(min_length):
             id = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))
-            testcase_step = raw_data['copydataObj']['copycaseStepList'][i]
-            testcase_objname = raw_data['copydataObj']['copycaseStepList_objname'][i]
-            testcase_findmethod = raw_data['copydataObj']['copycaseStepList_findmethod'][i]
+            testcase_step = copycaseStepList[i]
+            testcase_objname = copycaseStepList_objname[i] if i < len(copycaseStepList_objname) else ''
+            testcase_findmethod = copycaseStepList_findmethod[i] if i < len(copycaseStepList_findmethod) else ''
+            
+            if not testcase_objname or not testcase_findmethod:
+                continue
+                
             time.sleep(1)
             copyAiTestcase = AutotestplatAiTestcaseTemp(id=id,ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,
                                                ai_testcase_result=ai_testcase_result, creator=username,create_time=create_time,

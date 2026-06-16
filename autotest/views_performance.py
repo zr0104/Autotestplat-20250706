@@ -63,8 +63,36 @@ def apiPerformance(request):
     c.update({'page_list': page_list, 'interfaces': interfaces, 'type': type,'num':num,"product_name":product_name,"product_alls":product_all,"progress":progress,"progress_total":progress_total})
     return render(request,"interface_performance.html", c)
 
+# def report(request):
+#     return render(request,"output/index.html")
+
+# Fixed by 20260616
 def report(request):
-    return render(request,"output/index.html")
+    import os
+    current_dir = os.getcwd()
+    output_dir = os.path.join(current_dir, 'autotest', 'static', 'output')
+    index_file = os.path.join(output_dir, 'index.html')
+    
+    if not os.path.exists(output_dir):
+        return HttpResponse('性能测试报告目录不存在。<br/><br/>请先执行性能测试生成报告。', status=404)
+    
+    if not os.path.exists(index_file):
+        log_file = os.path.join(current_dir, 'apache-jmeter-5.6.2', 'bin', 'testLogFile')
+        error_msg = '性能测试报告尚未生成或生成失败。<br/><br/>可能的原因：<br/>'
+        error_msg += '1. JMeter未正确安装或路径配置错误<br/>'
+        error_msg += '2. 性能测试执行失败<br/>'
+        error_msg += '3. 报告生成过程中出现错误<br/><br/>'
+        
+        if os.path.exists(log_file):
+            error_msg += '<b>建议：</b>查看JMeter日志文件获取详细信息：<br/>'
+            error_msg += '<code>' + log_file + '</code><br/><br/>'
+            error_msg += '<a href="/autotest/performance/viewlog/" target="_blank">点击此处查看JMeter日志</a>'
+        
+        error_msg += '<br/><br/>请检查日志文件确认具体错误信息。'
+        return HttpResponse(error_msg, status=404)
+    
+    from django.shortcuts import render
+    return render(request, "output/index.html")
 
 def searchPerformanceInterface(request):
     if request.method == "POST":
@@ -347,10 +375,18 @@ def generateJmeterFile(request):
 
 def prepareJmeter(request):
     try:
-        bin_file = "cd "+current_dir+"/apache-jmeter-5.6.2/bin && del testLogFile"
-        rm_report_file = "rmdir /s/q "+current_dir.replace('/','\\')+"\\autotest\\static\\output\\ "
+        import subprocess
+        
+        bin_file = "cd " + current_dir + "/apache-jmeter-5.6.2/bin && del testLogFile"
+        rm_report_file = "rmdir /s/q " + current_dir.replace('/', '\\') + "\\autotest\\static\\output\\"
+        
         os.system(bin_file)
         os.system(rm_report_file)
+        
+        output_dir = os.path.join(current_dir, 'autotest', 'static', 'output')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            
         return HttpResponse("success")
     except Exception:
         traceback.print_exc()
@@ -358,13 +394,28 @@ def prepareJmeter(request):
 
 def startTestJmeter(request):
     try:
-        report_file = "cd "+current_dir+"/apache-jmeter-5.6.2/bin && jmeter -n -t "+current_dir+"/apache-jmeter-5.6.2/bin/apitest.jmx -l testLogFile -e -o "+current_dir+"/autotest/static/output"
-        os.system(report_file)
+        import subprocess
+        
+        jmx_file = current_dir + "/apache-jmeter-5.6.2/bin/apitest.jmx"
+        log_file = current_dir + "/apache-jmeter-5.6.2/bin/testLogFile"
+        output_dir = current_dir + "/autotest/static/output"
+        
+        jmeter_cmd = "cd " + current_dir + "/apache-jmeter-5.6.2/bin && jmeter -n -t \"" + jmx_file + "\" -l \"" + log_file + "\" -e -o \"" + output_dir + "\""
+        
+        result = os.system(jmeter_cmd)
+        
+        if result != 0:
+            return HttpResponse("JMeter执行失败，请检查日志文件：" + log_file)
+        
+        index_file = os.path.join(output_dir, 'index.html')
+        if not os.path.exists(index_file):
+            return HttpResponse("报告生成失败，请检查JMeter日志")
+        
         return HttpResponse("success")
     except Exception:
-        traceback.print_exc()
-        return HttpResponse("failed")
-
+        error_info = traceback.format_exc()
+        print(error_info)
+        return HttpResponse("failed: " + str(error_info))
 
 def showProgress(request):
     if request.method == "POST":

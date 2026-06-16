@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V6.0
 ############################################
 from django.urls import path
@@ -121,6 +121,7 @@ urlpatterns = [
     path('report/getReportDetail/<str:report_id>/', views_interfacereport.getReportDetail, name='reportdetail'),
     path('report/del/', views_interfacereport.deleteReport),
     path('apiperformance/', views_performance.apiPerformance, name='apiperformance'),
+    path('apiperformance/report/', views_performance.report, name='performancereport'),
     path('apiperformance/search/', views_performance.searchPerformanceInterface),
     path('apiperformance/generate/', views_performance.generateJmeterFile),
     path('apiperformance/prepare/', views_performance.prepareJmeter),

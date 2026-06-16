@@ -30,8 +30,14 @@ mail_pass=email_sender_value.split(",")[2]   #"rhdxglwjrznbbihj"
 report_dir = os.getcwd()
 # report_dir = Path(__file__).parent.resolve()
 # report_dir = Path.cwd()
-report_path = os.path.join(report_dir,"/autotest/report", "/report_{}.html".format(time.strftime("%Y%m%d%H%M%S")))
+report_timestamp = time.strftime("%Y%m%d%H%M%S")
+report_filename = "report_{}.html".format(report_timestamp)
+report_path = os.path.join(report_dir, "autotest", "report", report_filename)
 
+# 确保报告目录存在
+report_directory = os.path.dirname(report_path)
+if not os.path.exists(report_directory):
+    os.makedirs(report_directory)
 
 def html_template(report_id,product,testplan,testcase_sum,testcase_pass,testcase_fail,testcase_ng,testcase_pass_per,testtime,testcase_details):
     print(testcase_details)

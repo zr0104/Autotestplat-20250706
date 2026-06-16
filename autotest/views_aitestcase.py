@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V6.0
 ############################################
 import time,json,os
@@ -43,15 +43,25 @@ def loadAiTestcaseTable(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None):
+        
+        product_id_value = item[5]
+        if product_id_value is None or product_id_value == '':
             count = 0
         else:
-            count = tmp.count(int(item[5]))
+            try:
+                count = tmp.count(int(product_id_value))
+            except (ValueError, TypeError):
+                count = 0
+        
         if count > 0:
-            product_name = AutotestplatProduct.objects.filter(id=int(item[5])).first().product_name
-            item_list = list(item)
-            item_list[5] = product_name
-            item = tuple(item_list)
+            try:
+                product_name = AutotestplatProduct.objects.filter(id=int(product_id_value)).first().product_name
+                item_list = list(item)
+                item_list[5] = product_name
+                item = tuple(item_list)
+            except (ValueError, TypeError):
+                pass
+        
         for j in item:
             arr.append(j)
         rst.append(arr)

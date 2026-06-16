@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V4.0
 ############################################
 import time,json,pymysql,os
@@ -19,7 +19,7 @@ from selenium.webdriver.common.by import By
 from django.template.context_processors import csrf
 from django.shortcuts import render
 from .models import *
-#import uiautomator2 as u2
+import uiautomator2 as u2
 
 current_dir = os.getcwd()
 appium_version=4

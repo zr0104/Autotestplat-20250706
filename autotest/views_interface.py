@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V2.6
 ############################################
 import json,traceback,re,copy,os,requests,hashlib,redis,random,time,string,ast
@@ -72,17 +72,62 @@ def getApiView(req):
     return render(req,"interface_testcase.html",c)
 
 
+# def loadApiTestcaseTable(request,menu_module_id):
+#     username = request.session.get('user', '')
+#     if menu_module_id=='0':
+#         if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+#             items = AutotestplatInterfaceTestcase.objects.all().values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+#         else:
+#             user_product_id = AuthUser.objects.filter(username=username).first().last_name
+#         if user_product_id:
+#             items = AutotestplatInterfaceTestcase.objects.filter(Q(product_id=user_product_id)).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+#         else:
+#             items = AutotestplatInterfaceTestcase.objects.all().values_list('id','name','mode','url', 'charger','product_id','menu_module_id').annotate(Count('id')).order_by('-id')
+#     else:
+#         if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+#             items = AutotestplatInterfaceTestcase.objects.filter(menu_module_id=menu_module_id).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+#         else:
+#             user_product_id = AuthUser.objects.filter(username=username).first().last_name
+#             if user_product_id:
+#                 items = AutotestplatInterfaceTestcase.objects.filter(Q(product_id=user_product_id),Q(menu_module_id=menu_module_id)).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+#             else:
+#                 items = AutotestplatInterfaceTestcase.objects.filter(menu_module_id=menu_module_id).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+#     rst = []
+#     for item in items:
+#         arr = []
+#         tmp_ids = AutotestplatProduct.objects.all().values_list().order_by('id')
+#         tmp = []
+#         for tmp_id in tmp_ids:
+#             tmp.append(tmp_id[0])
+#         if (item[5] == None):
+#             count = 0
+#         else:
+#             count = tmp.count(int(item[5]))
+#         if count > 0:
+#             product_name = AutotestplatProduct.objects.filter(id=int(item[5])).first().product_name
+#             item_list = list(item)
+#             item_list[5] = product_name
+#             item = tuple(item_list)
+#         for j in item:
+#             arr.append(j)
+#         rst.append(arr)
+#     realRst = {'data': rst}
+#     return JsonResponse(realRst)
+
+# 20260616 Fixed bug
 def loadApiTestcaseTable(request,menu_module_id):
     username = request.session.get('user', '')
+    user_product_id = None
+
     if menu_module_id=='0':
         if AuthUser.objects.filter(username=username).first().is_superuser == 1:
             items = AutotestplatInterfaceTestcase.objects.all().values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
         else:
             user_product_id = AuthUser.objects.filter(username=username).first().last_name
-        if user_product_id:
-            items = AutotestplatInterfaceTestcase.objects.filter(Q(product_id=user_product_id)).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
-        else:
-            items = AutotestplatInterfaceTestcase.objects.all().values_list('id','name','mode','url', 'charger','product_id','menu_module_id').annotate(Count('id')).order_by('-id')
+            if user_product_id:
+                items = AutotestplatInterfaceTestcase.objects.filter(Q(product_id=user_product_id)).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+            else:
+                items = AutotestplatInterfaceTestcase.objects.all().values_list('id','name','mode','url', 'charger','product_id','menu_module_id').annotate(Count('id')).order_by('-id')
     else:
         if AuthUser.objects.filter(username=username).first().is_superuser == 1:
             items = AutotestplatInterfaceTestcase.objects.filter(menu_module_id=menu_module_id).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
@@ -92,6 +137,7 @@ def loadApiTestcaseTable(request,menu_module_id):
                 items = AutotestplatInterfaceTestcase.objects.filter(Q(product_id=user_product_id),Q(menu_module_id=menu_module_id)).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
             else:
                 items = AutotestplatInterfaceTestcase.objects.filter(menu_module_id=menu_module_id).values_list('id','name','mode','url', 'charger','product_id','menu_module_id','create_time').annotate(Count('id')).order_by('-id')
+
     rst = []
     for item in items:
         arr = []
@@ -113,7 +159,6 @@ def loadApiTestcaseTable(request,menu_module_id):
         rst.append(arr)
     realRst = {'data': rst}
     return JsonResponse(realRst)
-
 
 
 def loadModule(request):

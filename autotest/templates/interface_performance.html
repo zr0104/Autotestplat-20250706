@@ -1,8 +1,7 @@
-﻿
-<!Doctype html>
+﻿<!Doctype html>
 <html xmlns="http://www.w3.org/1999/html">
 <!---------------------------------------------------------
-Auther:：Fin;  Version：Autotestplat-V3.0
+Auther:：Sen;  Version：Autotestplat-V3.0
 ----------------------------------------------------------->
 <head>
     <meta charset="UTF-8">
@@ -186,7 +185,9 @@ Auther:：Fin;  Version：Autotestplat-V3.0
                      <button type="button" class="btn btn-danger btn-sm disabled" style="border-radius: 0" >操作</button>
                      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="" onclick="generate_performance_file()">生成Jmeter文件</button>
                      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="" onclick="start_test_jmeter()">测试开始</button>
-                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="" onclick=""> <a style="color: white;" target="current" href="/static/output/index.html">查看结果</a></button>
+                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="">
+                         <a style="color: white;" target="_blank" href="/autotest/apiperformance/report/">查看结果</a>
+                     </button>
                      <span style="color: blue;font-weight:bold;font-size:13px;margin-left: 5px;" class="jmeter_status"><progress id="progressBar" value="{{ progress }}" max="{{ progress_total }}"></progress></span>
                  </div>
              </div>

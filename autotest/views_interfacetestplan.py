@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 ############################################
-#Auther:：Fin
+#Auther:：Sen
 #Version：Autotestplat-V2.6
 ############################################
 import json,traceback,re,copy,os,requests,random,time,string,ast,hashlib
@@ -35,7 +35,7 @@ def interfaceTestplan(req):
         product_all = AutotestplatProduct.objects.filter(delete_flag='N')
         product_name = ''
         env_para = AutotestplatParameter.objects.filter(type="env")
-        interval = IntervalSchedule.objects.all().order_by('-id')
+        # interval = IntervalSchedule.objects.all().order_by('-id')
         interfaces = AutotestplatInterfaceTestcase.objects.all().order_by('-product_id', '-id')
         interfaces_all = []
         for interface in interfaces:
