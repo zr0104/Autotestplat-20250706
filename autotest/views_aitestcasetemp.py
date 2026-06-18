@@ -3,7 +3,7 @@
 #Auther:：Sen
 #Version：Autotestplat-V6.0
 ############################################
-import time,json,os
+import time,json,os,re
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
@@ -27,14 +27,43 @@ def getAiView(request):
 @csrf_exempt
 def loadAiTestcaseTable(request):
     username = request.session.get('user', '')
+    
+    print(f"========== 加载AI测试用例列表 ==========")
+    print(f"用户名: {username}")
+    
+    # 获取所有唯一的 ai_testcase_code（按最新时间排序）
     if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        items = AutotestplatAiTestcaseTemp.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+        print("用户是超级管理员")
+        # 先按 create_time 降序排列，然后按 ai_testcase_code 分组取第一条
+        from django.db.models import Max
+        latest_ids = AutotestplatAiTestcaseTemp.objects.values('ai_testcase_code').annotate(
+            max_id=Max('id')
+        ).values_list('max_id', flat=True)
+        items = AutotestplatAiTestcaseTemp.objects.filter(id__in=latest_ids).values_list(
+            'ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id'
+        ).order_by('-create_time')
+        print(f"查询到 {len(items)} 条记录")
     else:
         user_product_id = AuthUser.objects.filter(username=username).first().last_name
+        print(f"用户产品ID: {user_product_id}")
         if user_product_id:
-            items = AutotestplatAiTestcaseTemp.objects.filter(Q(product_id=user_product_id)).values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+            from django.db.models import Max
+            latest_ids = AutotestplatAiTestcaseTemp.objects.filter(product_id=user_product_id).values('ai_testcase_code').annotate(
+                max_id=Max('id')
+            ).values_list('max_id', flat=True)
+            items = AutotestplatAiTestcaseTemp.objects.filter(id__in=latest_ids).values_list(
+                'ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id'
+            ).order_by('-create_time')
+            print(f"按产品ID过滤后查询到 {len(items)} 条记录")
         else:
-            items = AutotestplatAiTestcaseTemp.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+            from django.db.models import Max
+            latest_ids = AutotestplatAiTestcaseTemp.objects.values('ai_testcase_code').annotate(
+                max_id=Max('id')
+            ).values_list('max_id', flat=True)
+            items = AutotestplatAiTestcaseTemp.objects.filter(id__in=latest_ids).values_list(
+                'ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id'
+            ).order_by('-create_time')
+            print(f"无产品ID过滤，查询到 {len(items)} 条记录")
 
     rst = []
     for item in items:
@@ -43,19 +72,32 @@ def loadAiTestcaseTable(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None):
+        
+        product_id_value = item[5]
+        if product_id_value is None or product_id_value == '':
             count = 0
         else:
-            count = tmp.count(int(item[5]))
+            try:
+                count = tmp.count(int(product_id_value))
+            except (ValueError, TypeError):
+                count = 0
+        
         if count > 0:
-            product_name = AutotestplatProduct.objects.filter(id=int(item[5])).first().product_name
-            item_list = list(item)
-            item_list[5] = product_name
-            item = tuple(item_list)
+            try:
+                product_name = AutotestplatProduct.objects.filter(id=int(product_id_value)).first().product_name
+                item_list = list(item)
+                item_list[5] = product_name
+                item = tuple(item_list)
+            except (ValueError, TypeError):
+                pass
+        
         for j in item:
             arr.append(j)
         rst.append(arr)
+    
     realRst = {'data': rst}
+    print(f"返回 {len(rst)} 条记录给前端")
+    print(f"========== 加载完成 ==========")
     return JsonResponse(realRst)
 
 
@@ -117,6 +159,112 @@ def addAitestcase(request):
        time.sleep(2)
        AutotestplatAiTestcaseTemp.objects.create(id=id, ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,ai_testcase_result=ai_testcase_result,creator=username,product_id=product_id,ai_testcase_step=aitestcase_step,ai_testcase_stepname=aitestcase_stepname,ai_testcase_expect_value=aitestcase_expect_value,ai_testcase_real_value=aitestcase_real_value,ai_testcase_step_result=aitestcase_step_result,create_time=create_time,delete_flag=delete_flag)
     return HttpResponse('200')
+
+@csrf_exempt
+def saveAiTestcaseFromChat(request):
+    """从AI对话保存测试用例到临时表"""
+    import json
+    import re
+    import uuid
+    
+    try:
+        # 获取参数
+        ai_testcase_code = request.POST.get('ai_testcase_code', str(int(time.time())))
+        ai_testcase_name = request.POST.get('ai_testcase_name', '')
+        ai_testcase_result = request.POST.get('ai_testcase_result', '')
+        requirements_id = request.POST.get('requirements_id', '')
+        product_id = request.POST.get('product_id', '')
+        
+        username = request.session.get('user', '')
+        if not username:
+            return HttpResponse('用户未登录', status=401)
+        
+        # 处理 product_id
+        if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+            product_id = ''  # 超级管理员不需要 product_id
+        else:
+            if not product_id:
+                user_product_id = AuthUser.objects.filter(username=username).first().last_name
+                product_id = user_product_id if user_product_id else ''
+        
+        create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
+        delete_flag = 'N'
+        
+        # 处理 requirements_id
+        req_id_value = None
+        if requirements_id and requirements_id.strip() != '':
+            try:
+                req_id_value = int(requirements_id)
+            except ValueError:
+                req_id_value = None
+        
+        print(f"========== 保存AI测试用例 ==========")
+        print(f"用例编码: {ai_testcase_code}")
+        print(f"用例名称: {ai_testcase_name}")
+        print(f"用户名: {username}")
+        print(f"产品ID: {product_id}")
+        print(f"需求ID: {req_id_value}")
+        print(f"步骤文本:\n{ai_testcase_result}")
+        
+        # 解析步骤和预期结果（支持前端实际发送的格式）
+        steps = []
+        expected_results = []
+        lines = ai_testcase_result.strip().split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            
+            # 匹配 "步骤X：" 或 "步骤X:"
+            step_match = re.search(r'^步骤\d+[:：]\s*(.+)$', line)
+            if step_match:
+                steps.append(step_match.group(1).strip())
+            
+            # 匹配 "预期结果X：" 或 "预期结果X:"
+            expected_match = re.search(r'^预期结果\d+[:：]\s*(.+)$', line)
+            if expected_match:
+                expected_results.append(expected_match.group(1).strip())
+        
+        min_len = min(len(steps), len(expected_results))
+        print(f"解析到 {len(steps)} 个步骤，{len(expected_results)} 个预期结果")
+        print(f"将保存 {min_len} 条记录")
+        
+        created_count = 0
+        for i in range(min_len):
+            # 使用 UUID 确保唯一性
+            unique_id = str(uuid.uuid4()).replace('-', '')[:16]
+            id = f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}_{unique_id}_{i}"
+            
+            # 提取步骤名称（取步骤内容的前20个字符作为步骤名称）
+            step_content = steps[i]
+            step_name = step_content[:20] if len(step_content) > 20 else step_content
+            
+            obj = AutotestplatAiTestcaseTemp.objects.create(
+                id=id,
+                ai_testcase_code=ai_testcase_code,
+                ai_testcase_name=ai_testcase_name,
+                ai_testcase_result='未执行',
+                creator=username,
+                product_id=product_id if product_id else None,
+                ai_testcase_step=step_content,  # 完整步骤内容
+                ai_testcase_stepname=step_name,  # 步骤名称（简短描述）
+                ai_testcase_expect_value=expected_results[i],
+                ai_testcase_real_value='',
+                ai_testcase_step_result='',
+                requirements_id=req_id_value,
+                create_time=create_time,
+                delete_flag=delete_flag
+            )
+            created_count += 1
+            print(f"创建记录 {i+1}: ID={id}, 步骤名={step_name}, 步骤={step_content[:30]}...")
+        
+        print(f"========== 成功创建 {created_count} 条记录 ==========")
+        return HttpResponse('200')
+    
+    except Exception as e:
+        print(f"保存AI测试用例失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'保存失败：{str(e)}', status=500)
 
 @csrf_exempt
 def loadAiOptions(request):

@@ -42,21 +42,10 @@ Auther:：Sen;  Version：Autotestplat-V6.0
         <section class="hk-sec-wrapper">
             <div class="row" style="padding: 0px 0px; margin: -15px 0;margin-right: 0px">
             <span style="font-size: 12px;height: 35px" class="input-group-text">迭代版本: </span>
-                <select id="select-iteration-option" name="setInput"  onchange="saveIterationOption()">
-                        <option>
-                                 {% if iteration_version == '' %}
-                                       ------
-                                 {% else %}
-                                     {{ iteration_version }}
-                                 {% endif %}
-                        </option>
+                <select id="select-iteration-filter" name="setInput" onchange="saveIterationOption()">
                         {% for iteration in iteration_alls %}
-                        <option>
-                        {% if iteration.iteration_version == iteration_version %}
-                            {{ iteration.iteration_version }} ✓
-                        {% else %}
-                            {{ iteration.iteration_version }}
-                       {% endif %}
+                        <option value="{{ iteration.iteration_version }}" {% if iteration.iteration_version == iteration_version %}selected{% endif %}>
+                            {{ iteration.iteration_version }} {% if iteration.iteration_version == iteration_version %}✓{% endif %}
                        </option>
                        {% endfor %}
                     </select>
@@ -112,22 +101,10 @@ Auther:：Sen;  Version：Autotestplat-V6.0
                 <div class="modal-body">
                     <div class="input-group" style="margin-bottom: 15px;">
                         <span class="input-group-text" style="width: 130px; padding-left: 25px;"><span style="color: red;">* </span>迭代版本</span>
-{#                        <input name="addInput1" class="form-control" placeholder="--请输入--">#}
-                         <select id="select-iteration-option" name="addInput1">
-                        <option>
-                                 {% if iteration_version == '' %}
-                                       ------
-                                 {% else %}
-                                     {{ iteration_version }}
-                                 {% endif %}
-                        </option>
+                         <select id="add-iteration-select" name="addInput1">
                         {% for iteration in iteration_alls %}
-                        <option>
-                        {% if iteration.iteration_version == iteration_version %}
-                            {{ iteration.iteration_version }} ✓
-                        {% else %}
+                        <option value="{{ iteration.iteration_version }}">
                             {{ iteration.iteration_version }}
-                       {% endif %}
                        </option>
                        {% endfor %}
                     </select>
@@ -141,7 +118,7 @@ Auther:：Sen;  Version：Autotestplat-V6.0
                         <input name="addInput1" class="form-control" placeholder="--请输入--">
                     </div>
                 </div>
-                <button class="btn btn-success " style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="add()">确 定</button>
+                <button class="btn btn-success " style="width: 15%; margin-bottom: 10px; margin-left: 50%;transform: translate(-50%,0);" onclick="addRequirement()">确 定</button>
             </div>
         </div>
     </div>
@@ -233,26 +210,86 @@ Auther:：Sen;  Version：Autotestplat-V6.0
 
 </body>
 <script>
+function addRequirement(){
+    console.log('========== 开始添加需求 ==========');
+    var inputFields = $("[name=addInput1]")
 
+    console.log('inputFields.length:', inputFields.length);
+    for(var i = 0; i < inputFields.length; i++) {
+        console.log(`字段 ${i}:`, inputFields[i].tagName, 'value:', `"${inputFields[i].value}"`)
+    }
 
+    // 获取字段值
+    var iteration_version = inputFields[0].value.trim();
+    var requirements_name = inputFields[1].value.trim();
+    var requirements_type = inputFields[2].value.trim();
 
+    console.log('迭代版本:', iteration_version);
+    console.log('需求描述:', requirements_name);
+    console.log('需求类型:', requirements_type);
+
+    // 验证
+    if(iteration_version === ''){
+        return alert("迭代版本不能为空！");
+    }
+    if(requirements_name === ''){
+        return alert("需求描述不能为空！");
+    }
+    if(requirements_type === ''){
+        return alert("需求类型不能为空！");
+    }
+
+    console.log('验证通过，发送请求...');
+
+    // 发送请求
+    $.ajax({
+        url: '/autotest/requirements/add/',
+        type: "POST",
+        data: {
+            'iteration_version': iteration_version,
+            'requirements_name': requirements_name,
+            'requirements_type': requirements_type
+        },
+        success: (rst) => {
+            console.log('响应:', rst);
+            if(rst === '200'){
+                alert("添加成功！");
+                $("#addModal").modal('hide');
+                location.reload();
+            }
+            else{
+                alert(rst);
+            }
+        },
+        error: (rst) =>{
+            console.log('错误:', rst);
+            alert("请求失败：" + rst.responseText);
+        },
+    })
+}
+
+// AI生成用例按钮的事件绑定（只绑定特定的按钮）
 document.addEventListener('DOMContentLoaded', function() {
+    var aiGenerateBtn = document.querySelector('#reToCaseModal .btn-success');
+    if(aiGenerateBtn){
+        aiGenerateBtn.onclick = function() {
+            document.getElementById('tipsModal').style.display = 'block';
+            reTotestcase();
+        };
+    }
 
-    document.querySelector('.btn-success').onclick = function() {
-        document.getElementById('tipsModal').style.display = 'block';
-        reTotestcase();
-    };
-
-    document.querySelector('#tipsModal .close').onclick = function() {
-        document.getElementById('tipsModal').style.display = 'none';
-    };
+    var tipsCloseBtn = document.querySelector('#tipsModal .close');
+    if(tipsCloseBtn){
+        tipsCloseBtn.onclick = function() {
+            document.getElementById('tipsModal').style.display = 'none';
+        };
+    }
 
     window.onclick = function(event) {
         if (event.target === document.getElementById('tipsModal')) {
             document.getElementById('tipsModal').style.display = 'none';
         }
     };
-
 });
 
 </script>

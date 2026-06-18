@@ -22,5 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('autotest/', include('autotest.urls')),
     #  修改根路径视图
-    # path('', views_index.indexView, name='index'),  # 添加根路径处理
+    path('', views_index.indexView, name='index'),  # 添加根路径处理
 ]

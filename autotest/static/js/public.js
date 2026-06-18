@@ -411,17 +411,41 @@ function showAddModal(e){
 
 function add(tips="添加成功"){
     var inputFields = $("[name=addInput1]")
+
+    console.log('========== 开始验证 ==========');
+    console.log('addFieldNames:', addFieldNames);
+    console.log('addRequiredFields:', addRequiredFields);
+    console.log('inputFields.length:', inputFields.length);
+
+    // 简单验证：检查所有必填字段是否有值
     for(var i = 0; i < addRequiredFields.length; i++){
-        if(inputFields[addRequiredFields[i]].value == ''){
+        var fieldIndex = addRequiredFields[i]
+        var field = inputFields[fieldIndex]
+
+        console.log(`字段 ${i}: index=${fieldIndex}, tagName=${field.tagName}`);
+        console.log(`  value="${field.value}"`);
+        console.log(`  trimmed="${field.value ? field.value.trim() : ''}"`);
+
+        // 获取字段值，去除首尾空格
+        var fieldValue = field.value ? field.value.trim() : ''
+
+        // 如果值为空，提示必填
+        if(fieldValue === ''){
+            console.log('验证失败！字段为空');
             return alert("*信息为必填项！")
         }
     }
+
+    console.log('验证通过，准备发送请求');
+
+    // 发送 AJAX 请求
     $.ajax({
         url: appURL + addURL,
         type: "POST",
         aysnc: false,
         data: AjaxObjectData(addFieldNames,inputFields),
         success: (rst) => {
+            console.log('响应:', rst);
             if(rst === '200'){
                 operationSelectValue('add')
                 alert(tips)
@@ -433,7 +457,7 @@ function add(tips="添加成功"){
             }
         },
         error: (rst) =>{
-            console.log(rst)
+            console.log('错误:', rst)
             return alert(rst)
         },
     })
@@ -1258,6 +1282,8 @@ function add_res_add_row(e) {
     elm1.innerHTML = resInput_innerHtml
     e.parentNode.parentNode.parentNode.insertBefore(elm1, e.parentNode.parentNode.nextSibling)
     resInputs += 1
+
+
 }
 
 

@@ -40,6 +40,8 @@ urlpatterns = [
     path('aitestcasetemp/delAitestcase/', views_aitestcasetemp.deleteAitestcase),
     path('aitestcasetemp/showModAiTestcase/', views_aitestcasetemp.showModAiTestcase),
     path('aitestcasetemp/modAitestcase/', views_aitestcasetemp.modAitestcase),
+    path('aitestcasetemp/addAitestcase/', views_aitestcasetemp.addAitestcase),
+    path('aitestcasetemp/saveFromChat/', views_aitestcasetemp.saveAiTestcaseFromChat),
 
     path('aitestcase/getSearchSelect/', views_aitestcase.loadAiOptions),
     path('aitestcase/getTableData/', views_aitestcase.loadAiTestcaseTable),

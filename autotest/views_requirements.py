@@ -20,8 +20,14 @@ def RequirementsView(request):
     else:
         user_iteration_version_id = AuthUser.objects.filter(username=user_name).first().first_name
         iv=AutotestplatAiIteration.objects.filter(product_id=product_id).values_list('id',flat=True)
-        if int(user_iteration_version_id) in list(iv):
-            iteration_version_id=user_iteration_version_id
+        if user_iteration_version_id and user_iteration_version_id.strip():
+            try:
+                if int(user_iteration_version_id) in list(iv):
+                    iteration_version_id=user_iteration_version_id
+                else:
+                    iteration_version_id=''
+            except (ValueError, TypeError):
+                iteration_version_id=''
         else:
             iteration_version_id=''
     if iteration_version_id=='':
@@ -35,22 +41,24 @@ def RequirementsView(request):
 @csrf_exempt
 def loadRequirements(request):
     username = request.session.get('user', '')
-    user_product_id = AuthUser.objects.filter(username=username).first().last_name
-    iteration_version_id = AuthUser.objects.filter(username=username).first().first_name
-    re_iteration_version_ids = AutotestplatRequirements.objects.filter(Q(product_id=user_product_id)).exclude(delete_flag='Y').values_list("iteration_version_id", flat=True)
-    # print(list(re_iteration_version_ids))
-    if iteration_version_id in re_iteration_version_ids:
-        if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-            items = AutotestplatRequirements.objects.filter(iteration_version_id=iteration_version_id).exclude(delete_flag='Y').values_list().order_by('id')
-        else:
-            if user_product_id:
-                items = AutotestplatRequirements.objects.filter(Q(product_id=user_product_id)).filter(iteration_version_id=iteration_version_id).exclude(delete_flag='Y').values_list().order_by('id')
-            else:
-                items = AutotestplatRequirements.objects.filter(iteration_version_id=iteration_version_id).exclude(delete_flag='Y').values_list().order_by('id')
+    
+    # 获取用户信息，如果不存在则返回空列表
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return JsonResponse({'data': []})
+    
+    user_product_id = user_obj.last_name
+    
+    # 如果用户有产品ID，只返回该产品的需求；否则返回所有需求
+    if user_product_id:
+        try:
+            items = AutotestplatRequirements.objects.filter(
+                Q(product_id=user_product_id) | Q(product_id__isnull=True)
+            ).exclude(delete_flag='Y').values_list().order_by('-id')
+        except:
+            items = AutotestplatRequirements.objects.exclude(delete_flag='Y').values_list().order_by('-id')
     else:
-        iteration_version_id = AutotestplatRequirements.objects.filter(Q(product_id=user_product_id)).exclude(delete_flag='Y').values_list("iteration_version_id").first()
-        # print(iteration_version_id)
-        items = AutotestplatRequirements.objects.filter(iteration_version_id=iteration_version_id).exclude(delete_flag='Y').values_list().order_by('id')
+        items = AutotestplatRequirements.objects.exclude(delete_flag='Y').values_list().order_by('-id')
 
     rst = []
     for item in items:
@@ -63,19 +71,63 @@ def loadRequirements(request):
 
 @csrf_exempt
 def addRequirements(request):
+    print("=" * 50)
+    print("接收到添加需求请求")
+    print("POST 数据:", request.POST)
+    
     iteration_version = request.POST.get('iteration_version')
-    iteration_version_id=AutotestplatAiIteration.objects.filter(iteration_version=iteration_version).first().id
     requirements_name = request.POST.get('requirements_name')
     requirements_type = request.POST.get('requirements_type')
+    
+    print(f"迭代版本: {iteration_version}")
+    print(f"需求名称: {requirements_name}")
+    print(f"需求类型: {requirements_type}")
+    
+    # 检查必填字段
+    if not iteration_version or iteration_version.strip() == '' or iteration_version == '------':
+        return HttpResponse('迭代版本不能为空！')
+    if not requirements_name or requirements_name.strip() == '':
+        return HttpResponse('需求描述不能为空！')
+    if not requirements_type or requirements_type.strip() == '':
+        return HttpResponse('需求类型不能为空！')
+    
+    # 检查迭代版本是否存在
+    iteration_obj = AutotestplatAiIteration.objects.filter(iteration_version=iteration_version).first()
+    print(f"查询迭代版本对象: {iteration_obj}")
+    
+    if not iteration_obj:
+        # 列出所有存在的迭代版本
+        all_iterations = AutotestplatAiIteration.objects.all().values_list('iteration_version', flat=True)
+        print(f"数据库中存在的迭代版本: {list(all_iterations)}")
+        return HttpResponse(f'迭代版本"{iteration_version}"不存在！请先在【功能测试】→【迭代版本】中创建该版本。当前可用版本：{", ".join(list(all_iterations))}')
+    
+    iteration_version_id = iteration_obj.id
     create_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     charger = request.session.get('user', '')
     product_id = AuthUser.objects.filter(username=charger).first().last_name
     delete_flag = 'N'
+    
+    # 检查需求是否已存在
     requirements_name_exist = AutotestplatRequirements.objects.filter(requirements_name=requirements_name).first()
     if requirements_name_exist:
-        return HttpResponse(f'产品”{requirements_name}“已存在，请重新填写')
-    AutotestplatRequirements.objects.create(iteration_version_id=iteration_version_id,requirements_name=requirements_name, requirements_type=requirements_type,product_id=product_id,charger=charger,create_time=create_time,delete_flag=delete_flag)
-    return HttpResponse('200')
+        return HttpResponse(f'需求"{requirements_name}"已存在，请重新填写')
+    
+    # 创建需求
+    try:
+        AutotestplatRequirements.objects.create(
+            iteration_version_id=iteration_version_id,
+            requirements_name=requirements_name, 
+            requirements_type=requirements_type,
+            product_id=product_id,
+            charger=charger,
+            create_time=create_time,
+            delete_flag=delete_flag
+        )
+        print("需求创建成功！")
+        return HttpResponse('200')
+    except Exception as e:
+        print(f"创建需求失败: {str(e)}")
+        return HttpResponse(f'创建需求失败：{str(e)}')
 
 @csrf_exempt
 def deleteRequirements(request):

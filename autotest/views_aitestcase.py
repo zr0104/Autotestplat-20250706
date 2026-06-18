@@ -113,6 +113,7 @@ def addAitestcase(request):
     ai_testcase_result = '未执行'
     create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
     ai_testcase_name = request.POST.get('ai_testcase_name')
+    requirements_id = request.POST.get('requirements_id', '')
     ai_testcase_step = request.POST.getlist('caseStepList[]')
     ai_testcase_stepname = request.POST.getlist('caseStepList_objname[]')
     ai_testcase_expect_value = request.POST.getlist('caseStepList_findmethod[]')
@@ -125,7 +126,7 @@ def addAitestcase(request):
        aitestcase_real_value = ''
        aitestcase_step_result=''
        time.sleep(2)
-       AutotestplatAiTestcase.objects.create(id=id, ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,ai_testcase_result=ai_testcase_result,creator=username,product_id=product_id,ai_testcase_step=aitestcase_step,ai_testcase_stepname=aitestcase_stepname,ai_testcase_expect_value=aitestcase_expect_value,ai_testcase_real_value=aitestcase_real_value,ai_testcase_step_result=aitestcase_step_result,create_time=create_time,delete_flag=delete_flag)
+       AutotestplatAiTestcase.objects.create(id=id, ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,ai_testcase_result=ai_testcase_result,creator=username,product_id=product_id,requirements_id=requirements_id,ai_testcase_step=aitestcase_step,ai_testcase_stepname=aitestcase_stepname,ai_testcase_expect_value=aitestcase_expect_value,ai_testcase_real_value=aitestcase_real_value,ai_testcase_step_result=aitestcase_step_result,create_time=create_time,delete_flag=delete_flag)
     return HttpResponse('200')
 
 @csrf_exempt
