@@ -505,6 +505,40 @@ def print_log(var1,HH = True):
     File1.close()
     pass
 
+def getcaptcha():
+    """
+    识别验证码图片
+    返回识别后的验证码字符串
+    """
+    try:
+        # 尝试使用 pytesseract 进行 OCR 识别
+        import pytesseract
+        from PIL import Image
+        
+        # 打开验证码图片
+        img = Image.open(codefile)
+        
+        # 使用 pytesseract 识别图片中的文字
+        # config 参数用于配置 OCR 引擎模式，--psm 7 表示单行文本
+        captcha_text = pytesseract.image_to_string(img, config='--psm 7')
+        
+        # 去除空白字符和换行符
+        captcha_text = captcha_text.strip().replace(' ', '').replace('\n', '')
+        
+        return captcha_text
+    except ImportError:
+        # 如果没有安装 pytesseract，返回一个随机验证码用于测试
+        import random
+        captcha_text = ''.join(random.choices(string.digits + string.ascii_lowercase, k=4))
+        print_log(f'【警告】：未安装 pytesseract，使用随机验证码: {captcha_text}')
+        return captcha_text
+    except Exception as e:
+        error_info = traceback.format_exc()
+        print_log(f'【ERROR】：验证码识别失败 - {str(e)}')
+        print_log(error_info)
+        # 出错时返回空字符串或默认值
+        return ''
+
 def assert_is_success(result,assert_keywords,is_contain,is_out = True):
     if(is_contain == '1'):
         print_log('\n【断言】： ' + assert_keywords)

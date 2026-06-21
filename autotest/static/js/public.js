@@ -32,45 +32,52 @@ function loginVerify(){
                             var apitestDropdownMenu = document.getElementById('apitestDropdownMenu');
                             var userDropdown = document.getElementById('navUser');
                             var userDropdownMenu = document.getElementById('userDropdownMenu');
-                            function showUIDropdown() {
-                                uiDropdownMenu.style.display = 'block';
-                            }
-                             function showTestDropdown() {
-                                testDropdownMenu.style.display = 'block';
-                            }
-                             function showApiTestDropdown() {
-                                apitestDropdownMenu.style.display = 'block';
-                            }
-                            function showUserDropdown() {
-                                userDropdownMenu.style.display = 'block';
-                            }
-                            function hideUIDropdown() {
-                                uiDropdownMenu.style.display = 'none';
-                            }
-                            function hideTestDropdown() {
-                                testDropdownMenu.style.display = 'none';
-                            }
-                            function hideApiTestDropdown() {
-                                apitestDropdownMenu.style.display = 'none';
-                            }
-                            function hideUserDropdown() {
-                                userDropdownMenu.style.display = 'none';
-                            }
-                            if(uiDropdown){
+
+                            // 只在元素存在时才添加事件监听器
+                            if(uiDropdown && uiDropdownMenu){
+                                function showUIDropdown() {
+                                    uiDropdownMenu.style.display = 'block';
+                                }
+                                function hideUIDropdown() {
+                                    uiDropdownMenu.style.display = 'none';
+                                }
                                 uiDropdown.addEventListener('mouseenter', showUIDropdown);
                                 uiDropdown.addEventListener('mouseleave', hideUIDropdown);
                             }
-                            if(testDropdown){
+
+                            if(testDropdown && testDropdownMenu){
+                                function showTestDropdown() {
+                                    testDropdownMenu.style.display = 'block';
+                                }
+                                function hideTestDropdown() {
+                                    testDropdownMenu.style.display = 'none';
+                                }
                                 testDropdown.addEventListener('mouseenter', showTestDropdown);
                                 testDropdown.addEventListener('mouseleave', hideTestDropdown);
                             }
-                            if(apitestDropdown){
+
+                            if(apitestDropdown && apitestDropdownMenu){
+                                function showApiTestDropdown() {
+                                    apitestDropdownMenu.style.display = 'block';
+                                }
+                                function hideApiTestDropdown() {
+                                    apitestDropdownMenu.style.display = 'none';
+                                }
                                 apitestDropdown.addEventListener('mouseenter', showApiTestDropdown);
                                 apitestDropdown.addEventListener('mouseleave', hideApiTestDropdown);
                             }
 
-                            userDropdown.addEventListener('mouseover', showUserDropdown);
-                            userDropdown.addEventListener('mouseout', hideUserDropdown);
+                            if(userDropdown && userDropdownMenu){
+                                function showUserDropdown() {
+                                    userDropdownMenu.style.display = 'block';
+                                }
+                                function hideUserDropdown() {
+                                    userDropdownMenu.style.display = 'none';
+                                }
+                                userDropdown.addEventListener('mouseover', showUserDropdown);
+                                userDropdown.addEventListener('mouseout', hideUserDropdown);
+                            }
+
                             rstStatus = 200
                         }
                         else{
@@ -104,7 +111,7 @@ function loginVerify(){
 
 
                 $(function() {
-                    const $navLinks = $('.nav-link');
+                    const $navLinks = $('.nav-link, .sidebar-link');
                     const currentPath = window.location.pathname.replace(/\/$/, '');
 
                     function isActivePath(linkPath) {
@@ -114,7 +121,7 @@ function loginVerify(){
                                 currentPath.charAt(linkPath.length) === '/');
                     }
 
-                    $(document).on('click', '.nav-link[data-menu].child-item', function(e) {
+                    $(document).on('click', '.nav-link[data-menu].child-item, .sidebar-link[data-menu]', function(e) {
                         e.preventDefault();
                         const $this = $(this);
                         const href = $this.attr('href');
@@ -122,7 +129,7 @@ function loginVerify(){
 
                         $navLinks.removeClass('active');
                         $this.addClass('active')
-                             .parents('.dropdown').find('> a').addClass('active');
+                             .parents('.dropdown, .sidebar-item').find('> a').addClass('active');
                         window.location.href = href;
                     });
 
@@ -135,7 +142,7 @@ function loginVerify(){
                         const linkPath = $(this).attr('href');
                         if (linkPath && isActivePath(linkPath)) {
                             $(this).addClass('active')
-                                   .parents('.dropdown').find('> a').addClass('active');
+                                   .parents('.dropdown, .sidebar-item').find('> a').addClass('active');
                         }
                     });
                 });

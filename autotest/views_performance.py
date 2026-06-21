@@ -13,9 +13,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import *
 from .views_jmeter import generate_jmx,body_request,body_request2,body_testplan,body_result,body_thread,body_thread2,body_head,body_cookie,generate_jmx2
+from .views_interface import getcaptcha
 
 current_dir = os.getcwd()
-jmxfile = os.path.join(current_dir, 'apache-jmeter-5.6.2/bin', 'apitest.jmx')
+jmxfile = os.path.join(current_dir, 'apache-jmeter-5.6.3/bin', 'apitest.jmx')
 logfile = os.path.join(current_dir, 'autotest', 'test_out.log')
 codefile= os.path.join(current_dir, 'autotest', 'code.jpg')
 session = requests.Session()
@@ -23,18 +24,32 @@ session = requests.Session()
 @login_required
 def apiPerformance(request):
     username = request.session.get('user', '')
-    if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+    
+    # 获取当前用户信息
+    if not username:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
+    if user_obj.is_superuser == 1:
         interfaces = AutotestplatInterfaceTestcase.objects.filter().order_by('-id').all()
         product_all = AutotestplatProduct.objects.filter(delete_flag='N')
         product_name = ''
     else:
-        user_product_id = AuthUser.objects.filter(username=username).first().last_name
+        user_product_id = user_obj.last_name
         try:
             interfaces = AutotestplatInterfaceTestcase.objects.filter(product_id=user_product_id).order_by('-id').all()
         except:
             interfaces = AutotestplatInterfaceTestcase.objects.filter().order_by('-id').all()
-        product_id = AuthUser.objects.filter(username=username).first().last_name
-        product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+        product_id = user_product_id
+        if product_id:
+            product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+        else:
+            product_name = ''
         product_all = AutotestplatProduct.objects.filter(delete_flag='N')
     for i in interfaces:
         tmp_ids = AutotestplatProduct.objects.all().values_list().order_by('id')
@@ -67,32 +82,198 @@ def apiPerformance(request):
 #     return render(request,"output/index.html")
 
 # Fixed by 20260616
+# def report(request):
+#     import os
+#     current_dir = os.getcwd()
+#     output_dir = os.path.join(current_dir, 'autotest', 'static', 'output')
+#     index_file = os.path.join(output_dir, 'index.html')
+#
+#     # 检查 JMeter 是否安装
+#     jmeter_dir = os.path.join(current_dir, 'apache-jmeter-5.6.3')
+#     jmeter_bin = os.path.join(jmeter_dir, 'bin', 'jmeter.bat')
+#
+#     if not os.path.exists(jmeter_dir):
+#         error_msg = '<h2>性能测试报告查看失败</h2><br/>'
+#         error_msg += '<b>原因：</b>JMeter 未安装<br/><br/>'
+#         error_msg += '<b>解决方案：</b><br/>'
+#         error_msg += '1. 下载 Apache JMeter 5.6.3：<a href="https://jmeter.apache.org/download_jmeter.cgi" target="_blank">https://jmeter.apache.org/download_jmeter.cgi</a><br/>'
+#         error_msg += '2. 解压到项目根目录：' + current_dir + '<br/>'
+#         error_msg += '3. 确保目录结构为：' + current_dir + '\\apache-jmeter-5.6.3\\<br/>'
+#         error_msg += '4. 重新执行性能测试<br/><br/>'
+#         error_msg += '<b>当前状态：</b><br/>'
+#         error_msg += '- 项目根目录：' + current_dir + '<br/>'
+#         error_msg += '- JMeter 预期路径：' + jmeter_dir + '<br/>'
+#         error_msg += '- JMeter 状态：<span style="color: red;">未找到</span><br/>'
+#         return HttpResponse(error_msg, status=404)
+#
+#     if not os.path.exists(jmeter_bin):
+#         error_msg = '<h2>性能测试报告查看失败</h2><br/>'
+#         error_msg += '<b>原因：</b>JMeter 已安装但可执行文件不存在<br/><br/>'
+#         error_msg += '<b>预期位置：</b>' + jmeter_bin + '<br/>'
+#         error_msg += '<b>建议：</b>请确认 JMeter 版本是否正确（应为 5.6.3）<br/>'
+#         return HttpResponse(error_msg, status=404)
+#
+#     if not os.path.exists(output_dir):
+#         error_msg = '<h2>性能测试报告尚未生成</h2><br/>'
+#         error_msg += '<b>可能原因：</b><br/>'
+#         error_msg += '1. 还未执行过性能测试<br/>'
+#         error_msg += '2. 性能测试执行失败<br/>'
+#         error_msg += '3. 报告生成过程中出现错误<br/><br/>'
+#         error_msg += '<b>解决方案：</b><br/>'
+#         error_msg += '1. 访问 <a href="/autotest/apiperformance/">性能测试页面</a><br/>'
+#         error_msg += '2. 选择需要测试的接口<br/>'
+#         error_msg += '3. 配置线程数、循环次数等参数<br/>'
+#         error_msg += '4. 点击"开始测试"按钮执行测试<br/>'
+#         error_msg += '5. 等待测试完成后，再次访问本报告页面<br/><br/>'
+#         error_msg += '<b>当前状态：</b><br/>'
+#         error_msg += '- 报告目录：' + output_dir + '<br/>'
+#         error_msg += '- 报告状态：<span style="color: red;">不存在</span><br/>'
+#         return HttpResponse(error_msg, status=404)
+#
+#     if not os.path.exists(index_file):
+#         log_file = os.path.join(current_dir, 'apache-jmeter-5.6.3', 'bin', 'testLogFile')
+#         error_msg = '<h2>性能测试报告生成失败</h2><br/>'
+#         error_msg += '<b>可能原因：</b><br/>'
+#         error_msg += '1. JMeter 执行时出现错误<br/>'
+#         error_msg += '2. 接口配置有误（URL、参数、断言等）<br/>'
+#         error_msg += '3. 网络连接问题<br/>'
+#         error_msg += '4. Redis 服务未启动（如果使用验证码等功能）<br/><br/>'
+#
+#         if os.path.exists(log_file):
+#             error_msg += '<b>查看详细日志：</b><br/>'
+#             error_msg += '<a href="/autotest/performance/viewlog/" target="_blank">点击此处查看 JMeter 执行日志</a><br/><br/>'
+#             error_msg += '日志文件路径：<code>' + log_file + '</code><br/><br/>'
+#
+#             # 尝试读取最后几行日志
+#             try:
+#                 with open(log_file, 'r', encoding='utf-8') as f:
+#                     lines = f.readlines()
+#                     if len(lines) > 0:
+#                         error_msg += '<b>最近日志（最后10行）：</b><br/>'
+#                         error_msg += '<pre style="background-color: #f5f5f5; padding: 10px; border: 1px solid #ddd;">'
+#                         for line in lines[-10:]:
+#                             error_msg += line.replace('<', '&lt;').replace('>', '&gt;')
+#                         error_msg += '</pre><br/>'
+#             except Exception as e:
+#                 error_msg += '<b>无法读取日志文件：</b>' + str(e) + '<br/><br/>'
+#         else:
+#             error_msg += '<b>注意：</b>JMeter 日志文件不存在，可能测试未真正执行<br/><br/>'
+#
+#         error_msg += '<b>建议排查步骤：</b><br/>'
+#         error_msg += '1. 检查接口配置是否正确（URL、请求方法、参数等）<br/>'
+#         error_msg += '2. 手动测试接口是否能正常访问<br/>'
+#         error_msg += '3. 检查系统参数设置是否完整<br/>'
+#         error_msg += '4. 确认 Redis 服务已启动（如需要）<br/>'
+#         error_msg += '5. 查看 JMeter 日志获取详细错误信息<br/><br/>'
+#
+#         error_msg += '<b>当前状态：</b><br/>'
+#         error_msg += '- 报告目录：' + output_dir + '<br/>'
+#         error_msg += '- 报告文件：<span style="color: red;">index.html 不存在</span><br/>'
+#         error_msg += '- JMeter 日志：<span style="color: ' + ('green' if os.path.exists(log_file) else 'red') + ';">' + ('存在' if os.path.exists(log_file) else '不存在') + '</span><br/>'
+#
+#         return HttpResponse(error_msg, status=404)
+#
+#     from django.shortcuts import render
+#     return render(request, "output/index.html")
+
+# ... existing code ...
+
 def report(request):
     import os
     current_dir = os.getcwd()
     output_dir = os.path.join(current_dir, 'autotest', 'static', 'output')
     index_file = os.path.join(output_dir, 'index.html')
-    
+
+    # 检查 JMeter 是否安装
+    jmeter_dir = os.path.join(current_dir, 'apache-jmeter-5.6.3')
+    jmeter_bin = os.path.join(jmeter_dir, 'bin', 'jmeter.bat')
+
+    if not os.path.exists(jmeter_dir):
+        error_msg = '<h2>性能测试报告查看失败</h2><br/>'
+        error_msg += '<b>原因：</b>JMeter 未安装<br/><br/>'
+        error_msg += '<b>解决方案：</b><br/>'
+        error_msg += '1. 下载 Apache JMeter 5.6.3：<a href="https://jmeter.apache.org/download_jmeter.cgi" target="_blank">https://jmeter.apache.org/download_jmeter.cgi</a><br/>'
+        error_msg += '2. 解压到项目根目录：' + current_dir + '<br/>'
+        error_msg += '3. 确保目录结构为：' + current_dir + '\\apache-jmeter-5.6.3\\<br/>'
+        error_msg += '4. 重新执行性能测试<br/><br/>'
+        error_msg += '<b>当前状态：</b><br/>'
+        error_msg += '- 项目根目录：' + current_dir + '<br/>'
+        error_msg += '- JMeter 预期路径：' + jmeter_dir + '<br/>'
+        error_msg += '- JMeter 状态：<span style="color: red;">未找到</span><br/>'
+        return HttpResponse(error_msg, status=404)
+
+    if not os.path.exists(jmeter_bin):
+        error_msg = '<h2>性能测试报告查看失败</h2><br/>'
+        error_msg += '<b>原因：</b>JMeter 已安装但可执行文件不存在<br/><br/>'
+        error_msg += '<b>预期位置：</b>' + jmeter_bin + '<br/>'
+        error_msg += '<b>建议：</b>请确认 JMeter 版本是否正确（应为 5.6.3）<br/>'
+        return HttpResponse(error_msg, status=404)
+
     if not os.path.exists(output_dir):
-        return HttpResponse('性能测试报告目录不存在。<br/><br/>请先执行性能测试生成报告。', status=404)
-    
-    if not os.path.exists(index_file):
-        log_file = os.path.join(current_dir, 'apache-jmeter-5.6.2', 'bin', 'testLogFile')
-        error_msg = '性能测试报告尚未生成或生成失败。<br/><br/>可能的原因：<br/>'
-        error_msg += '1. JMeter未正确安装或路径配置错误<br/>'
+        error_msg = '<h2>性能测试报告尚未生成</h2><br/>'
+        error_msg += '<b>可能原因：</b><br/>'
+        error_msg += '1. 还未执行过性能测试<br/>'
         error_msg += '2. 性能测试执行失败<br/>'
         error_msg += '3. 报告生成过程中出现错误<br/><br/>'
-        
-        if os.path.exists(log_file):
-            error_msg += '<b>建议：</b>查看JMeter日志文件获取详细信息：<br/>'
-            error_msg += '<code>' + log_file + '</code><br/><br/>'
-            error_msg += '<a href="/autotest/performance/viewlog/" target="_blank">点击此处查看JMeter日志</a>'
-        
-        error_msg += '<br/><br/>请检查日志文件确认具体错误信息。'
+        error_msg += '<b>解决方案：</b><br/>'
+        error_msg += '1. 访问 <a href="/autotest/apiperformance/">性能测试页面</a><br/>'
+        error_msg += '2. 选择需要测试的接口<br/>'
+        error_msg += '3. 配置线程数、循环次数等参数<br/>'
+        error_msg += '4. 点击"开始测试"按钮执行测试<br/>'
+        error_msg += '5. 等待测试完成后，再次访问本报告页面<br/><br/>'
+        error_msg += '<b>当前状态：</b><br/>'
+        error_msg += '- 报告目录：' + output_dir + '<br/>'
+        error_msg += '- 报告状态：<span style="color: red;">不存在</span><br/>'
         return HttpResponse(error_msg, status=404)
-    
+
+    if not os.path.exists(index_file):
+        log_file = os.path.join(current_dir, 'apache-jmeter-5.6.3', 'bin', 'testLogFile')
+        error_msg = '<h2>性能测试报告生成失败</h2><br/>'
+        error_msg += '<b>可能原因：</b><br/>'
+        error_msg += '1. JMeter 执行时出现错误<br/>'
+        error_msg += '2. 接口配置有误（URL、参数、断言等）<br/>'
+        error_msg += '3. 网络连接问题<br/>'
+        error_msg += '4. Redis 服务未启动（如果使用验证码等功能）<br/><br/>'
+
+        if os.path.exists(log_file):
+            error_msg += '<b>查看详细日志：</b><br/>'
+            error_msg += '<a href="/autotest/performance/viewlog/" target="_blank">点击此处查看 JMeter 执行日志</a><br/><br/>'
+            error_msg += '日志文件路径：<code>' + log_file + '</code><br/><br/>'
+
+            # 尝试读取最后几行日志
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    if len(lines) > 0:
+                        error_msg += '<b>最近日志（最后20行）：</b><br/>'
+                        error_msg += '<pre style="background-color: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-size: 12px;">'
+                        for line in lines[-20:]:
+                            error_msg += line.replace('<', '&lt;').replace('>', '&gt;')
+                        error_msg += '</pre><br/>'
+            except Exception as e:
+                error_msg += '<b>无法读取日志文件：</b>' + str(e) + '<br/><br/>'
+        else:
+            error_msg += '<b>注意：</b>JMeter 日志文件不存在，可能测试未真正执行<br/><br/>'
+
+        error_msg += '<b>建议排查步骤：</b><br/>'
+        error_msg += '1. 检查接口配置是否正确（URL、请求方法、参数等）<br/>'
+        error_msg += '2. 手动测试接口是否能正常访问<br/>'
+        error_msg += '3. 检查系统参数设置是否完整<br/>'
+        error_msg += '4. 确认 Redis 服务已启动（如需要）<br/>'
+        error_msg += '5. 查看 JMeter 日志获取详细错误信息<br/><br/>'
+
+        error_msg += '<b>当前状态：</b><br/>'
+        error_msg += '- 报告目录：' + output_dir + '<br/>'
+        error_msg += '- 报告文件：<span style="color: red;">index.html 不存在</span><br/>'
+        error_msg += '- JMeter 日志：<span style="color: ' + ('green' if os.path.exists(log_file) else 'red') + ';">' + ('存在' if os.path.exists(log_file) else '不存在') + '</span><br/>'
+
+        return HttpResponse(error_msg, status=404)
+
     from django.shortcuts import render
     return render(request, "output/index.html")
+
+# ... existing code ...
+
 
 def searchPerformanceInterface(request):
     if request.method == "POST":
@@ -377,7 +558,7 @@ def prepareJmeter(request):
     try:
         import subprocess
         
-        bin_file = "cd " + current_dir + "/apache-jmeter-5.6.2/bin && del testLogFile"
+        bin_file = "cd " + current_dir + "/apache-jmeter-5.6.3/bin && del testLogFile"
         rm_report_file = "rmdir /s/q " + current_dir.replace('/', '\\') + "\\autotest\\static\\output\\"
         
         os.system(bin_file)
@@ -396,25 +577,83 @@ def startTestJmeter(request):
     try:
         import subprocess
         
-        jmx_file = current_dir + "/apache-jmeter-5.6.2/bin/apitest.jmx"
-        log_file = current_dir + "/apache-jmeter-5.6.2/bin/testLogFile"
+        jmx_file = current_dir + "/apache-jmeter-5.6.3/bin/apitest.jmx"
+        log_file = current_dir + "/apache-jmeter-5.6.3/bin/testLogFile"
         output_dir = current_dir + "/autotest/static/output"
         
-        jmeter_cmd = "cd " + current_dir + "/apache-jmeter-5.6.2/bin && jmeter -n -t \"" + jmx_file + "\" -l \"" + log_file + "\" -e -o \"" + output_dir + "\""
+        # 确保输出目录存在
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         
-        result = os.system(jmeter_cmd)
+        # 检查 JMX 文件是否存在
+        if not os.path.exists(jmx_file):
+            return HttpResponse("JMX 脚本文件不存在：" + jmx_file)
         
-        if result != 0:
-            return HttpResponse("JMeter执行失败，请检查日志文件：" + log_file)
+        # 构建 JMeter 命令
+        jmeter_exe = current_dir + "/apache-jmeter-5.6.3/bin/jmeter.bat"
+        if not os.path.exists(jmeter_exe):
+            return HttpResponse("JMeter 可执行文件不存在：" + jmeter_exe)
         
+        # 使用 subprocess 执行，捕获输出
+        cmd = [
+            jmeter_exe,
+            '-n',  # 非 GUI 模式
+            '-t', jmx_file,
+            '-l', log_file,
+            '-e',  # 生成 HTML 报告
+            '-o', output_dir
+        ]
+        
+        print_log(f'【INFO】：开始执行 JMeter 性能测试')
+        print_log(f'【INFO】：JMX 文件：{jmx_file}')
+        print_log(f'【INFO】：日志文件：{log_file}')
+        print_log(f'【INFO】：输出目录：{output_dir}')
+        
+        result = subprocess.run(cmd, cwd=current_dir + "/apache-jmeter-5.6.3/bin", 
+                              capture_output=True, text=True, timeout=300)
+        
+        # 记录执行结果
+        if result.stdout:
+            print_log(f'【STDOUT】：{result.stdout}')
+        if result.stderr:
+            print_log(f'【STDERR】：{result.stderr}')
+        
+        print_log(f'【INFO】：JMeter 执行返回码：{result.returncode}')
+        
+        # 等待报告生成完成
+        import time
+        max_wait = 30  # 最多等待30秒
+        for i in range(max_wait):
+            index_file = os.path.join(output_dir, 'index.html')
+            if os.path.exists(index_file):
+                print_log(f'【SUCCESS】：HTML 报告已生成，耗时 {i+1} 秒')
+                break
+            time.sleep(1)
+        else:
+            print_log(f'【WARNING】：等待 {max_wait} 秒后仍未生成报告')
+        
+        # 检查报告是否生成
         index_file = os.path.join(output_dir, 'index.html')
-        if not os.path.exists(index_file):
-            return HttpResponse("报告生成失败，请检查JMeter日志")
+        if os.path.exists(index_file):
+            print_log(f'【SUCCESS】：性能测试执行成功')
+            return HttpResponse("success")
+        else:
+            error_msg = "报告生成失败\n"
+            error_msg += f"JMeter 返回码：{result.returncode}\n"
+            if result.stderr:
+                error_msg += f"错误输出：{result.stderr[:500]}\n"
+            if result.stdout:
+                error_msg += f"标准输出：{result.stdout[:500]}"
+            print_log(f'【ERROR】：{error_msg}')
+            return HttpResponse(error_msg)
         
-        return HttpResponse("success")
-    except Exception:
+    except subprocess.TimeoutExpired:
         error_info = traceback.format_exc()
-        print(error_info)
+        print_log(f'【ERROR】：JMeter 执行超时 - {error_info}')
+        return HttpResponse("JMeter 执行超时（超过5分钟），请检查配置或查看日志")
+    except Exception as e:
+        error_info = traceback.format_exc()
+        print_log(f'【ERROR】：{error_info}')
         return HttpResponse("failed: " + str(error_info))
 
 def showProgress(request):
@@ -915,3 +1154,105 @@ def print_log(var1, HH=True):
         File1.write(str(var1) + '\n')
     File1.close()
     pass
+
+@login_required
+def viewJmeterLog(request):
+    """查看 JMeter 执行日志"""
+    import os
+    current_dir = os.getcwd()
+    log_file = os.path.join(current_dir, 'apache-jmeter-5.6.3', 'bin', 'testLogFile')
+
+    if not os.path.exists(log_file):
+        return HttpResponse('<h2>JMeter 日志文件不存在</h2><br/>可能原因：还未执行过性能测试或测试未生成日志文件。<br/><br/>请先执行性能测试后再查看日志。', status=404)
+
+    try:
+        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+            log_content = f.read()
+
+        # 转义 HTML 特殊字符
+        log_content = log_content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+        html = '''<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JMeter 执行日志</title>
+    <style>
+        body {
+            font-family: "Courier New", monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            margin: 0;
+        }
+        .header {
+            background-color: #333;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #fff;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            color: #aaa;
+            font-size: 14px;
+        }
+        .log-container {
+            background-color: #252526;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .error {
+            color: #f48771;
+        }
+        .success {
+            color: #89d185;
+        }
+        .info {
+            color: #4fc1ff;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background-color: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1> JMeter 执行日志</h1>
+        <p>文件路径：''' + log_file.replace('\\', '\\\\') + '''</p>
+        <p>文件大小：''' + str(os.path.getsize(log_file)) + ''' 字节 | 最后修改：''' + str(datetime.fromtimestamp(os.path.getmtime(log_file))) + '''</p>
+    </div>
+    <div class="log-container">
+        <pre>''' + log_content + '''</pre>
+    </div>
+    <a href="javascript:history.back()" class="back-btn">← 返回上一页</a>
+</body>
+</html>'''
+
+        return HttpResponse(html)
+    except Exception as e:
+        error_info = traceback.format_exc()
+        return HttpResponse('<h2>读取日志文件失败</h2><br/>错误信息：' + str(e) + '<br/><br/>详细错误：<pre>' + error_info + '</pre>', status=500)

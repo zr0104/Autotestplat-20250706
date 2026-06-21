@@ -4,7 +4,7 @@ import codecs
 import os
 
 current_dir = os.getcwd()
-jmxfile = os.path.join(current_dir, 'apache-jmeter-5.6.2/bin', 'apitest.jmx')
+jmxfile = os.path.join(current_dir, 'apache-jmeter-5.6.3/bin', 'apitest.jmx')
 usersfile = os.path.join(current_dir, 'autotest', 'users.txt')
 usersfile = usersfile.replace('\\', '/')
 
@@ -344,6 +344,12 @@ def body_tran():
 
 def generate_jmx(jname,jhost,jport,jpath,jscheme,jbody):
     File = jmxfile
+    
+    # 确保目录存在
+    File_dir = os.path.dirname(File)
+    if not os.path.exists(File_dir):
+        os.makedirs(File_dir)
+    
     File1 = open(File,'a')
     File1.truncate()
     File1.flush()
@@ -372,6 +378,12 @@ def generate_jmx(jname,jhost,jport,jpath,jscheme,jbody):
 
 def generate_jmx2(jname,jhost,jport,jpath,jscheme,jbody):
     File = jmxfile
+    
+    # 确保目录存在
+    File_dir = os.path.dirname(File)
+    if not os.path.exists(File_dir):
+        os.makedirs(File_dir)
+    
     File1 = open(File,'a')
     File1.truncate()
     File1.flush()

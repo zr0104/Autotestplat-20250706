@@ -12,14 +12,15 @@ from django.db.models import Q
 from django.template.context_processors import csrf
 from django.shortcuts import render
 from .models import *
+from .views_user import get_user_product_info
 current_dir = os.getcwd()
 
 
 def getAiView(request):
     user_name = request.session.get('user', '')
     product_all = AutotestplatProduct.objects.filter(delete_flag='N')
-    product_id = AuthUser.objects.filter(username=user_name).first().last_name
-    product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+    _, product_name = get_user_product_info(user_name)
+    
     c = csrf(request)
     c.update({"product_name":product_name,"product_alls":product_all})
     return render(request,"ai_testcase_temp.html",c)

@@ -25,8 +25,22 @@ fake = Faker("zh_CN")
 @login_required
 def showSystemSettings(request):
     username = request.session.get('user', '')
-    user_product_id = AuthUser.objects.filter(username=username).first().last_name
-    product_name_tmp = AutotestplatProduct.objects.filter(id=user_product_id).first().product_name
+    
+    # 获取当前用户信息
+    if not username:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
+    user_product_id = user_obj.last_name
+    if user_product_id:
+        product_name_tmp = AutotestplatProduct.objects.filter(id=user_product_id).first().product_name
+    else:
+        product_name_tmp = ''
     try:
         para_list = AutotestplatParameter.objects.filter(Q(product_id=user_product_id),~Q(type='res')).order_by('-id').all()
     except:
@@ -41,10 +55,19 @@ def showSystemSettings(request):
 @login_required
 def loadSystemSettings(request):
     username = request.session.get('user', '')
-    if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+    
+    # 获取当前用户信息
+    if not username:
+        return JsonResponse({'data': []})
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return JsonResponse({'data': []})
+    
+    if user_obj.is_superuser == 1:
         items = AutotestplatParameter.objects.filter(~Q(type='res')).values_list().order_by('id')
     else:
-        user_product_id = AuthUser.objects.filter(username=username).first().last_name
+        user_product_id = user_obj.last_name
         try:
             items = AutotestplatParameter.objects.filter(Q(product_id=user_product_id), ~Q(type='res')).values_list().order_by('id')
         except:

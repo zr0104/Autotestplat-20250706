@@ -115,6 +115,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "autotest").join("static")
 ]
 
+LOGIN_URL = '/autotest/login/'
+
 X_FRAME_OPTIONS = ''
 
 

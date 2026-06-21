@@ -1,4 +1,5 @@
-cur_id: 2096
+【接口名称】: 用户列表接口-随机数字参数
+【请求方式】: POST
 Traceback (most recent call last):
   File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 169, in _new_conn
     conn = connection.create_connection(
@@ -31,7 +32,7 @@ Traceback (most recent call last):
     conn = self._new_conn()
   File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 181, in _new_conn
     raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x07282310>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x074C3FB8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
 
 During handling of the above exception, another exception occurred:
 
@@ -42,16 +43,16 @@ Traceback (most recent call last):
     retries = retries.increment(
   File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\retry.py", line 574, in increment
     raise MaxRetryError(_pool, url, error or ResponseError(cause))
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x07282310>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x074C3FB8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 794, in interface_test_start
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 828, in interface_test_start
     response,cookie = Method_POST(url,body,head,body_format,is_out)
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 864, in Method_POST
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 898, in Method_POST
     r = request_post(url, body, head, body_format)
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 823, in request_post
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 857, in request_post
     r = session.post(url,body,headers = head)
   File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 577, in post
     return self.request('POST', url, data=data, json=json, **kwargs)
@@ -61,5 +62,28 @@ Traceback (most recent call last):
     r = adapter.send(request, **kwargs)
   File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\adapters.py", line 519, in send
     raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x07282310>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x074C3FB8>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
 
+【INFO】：开始执行 JMeter 性能测试
+【INFO】：JMX 文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+【INFO】：日志文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/testLogFile
+【INFO】：输出目录：C:\Users\87389\PycharmProjects\Autotestplat-20250706/autotest/static/output
+【STDOUT】：WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+Creating summariser <summary>
+Created the tree successfully using C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+Starting standalone test @ 2026 Jun 20 14:53:26 CST (1781938406825)
+Waiting for possible Shutdown/StopTestNow/HeapDump/ThreadDump message on port 4445
+summary +   8891 in 00:00:03 = 2915.1/s Avg:     0 Min:     0 Max:    53 Err:  8891 (100.00%) Active: 10 Started: 10 Finished: 0
+summary + 159443 in 00:00:30 = 5315.8/s Avg:     0 Min:     0 Max:    92 Err: 159443 (100.00%) Active: 10 Started: 10 Finished: 0
+summary = 168334 in 00:00:33 = 5094.2/s Avg:     0 Min:     0 Max:    92 Err: 168334 (100.00%)
+summary + 157289 in 00:00:27 = 5827.9/s Avg:     0 Min:     0 Max:     2 Err: 157289 (100.00%) Active: 0 Started: 10 Finished: 10
+summary = 325623 in 00:01:00 = 5424.1/s Avg:     0 Min:     0 Max:    92 Err: 325623 (100.00%)
+Tidying up ...    @ 2026 Jun 20 14:54:26 CST (1781938466990)
+... end of run
+
+【INFO】：JMeter 执行返回码：0
+【SUCCESS】：HTML 报告已生成，耗时 1 秒
+【SUCCESS】：性能测试执行成功

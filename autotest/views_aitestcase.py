@@ -17,9 +17,21 @@ current_dir = os.getcwd()
 
 def getAiView(request):
     user_name = request.session.get('user', '')
+    if not user_name:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
+    user_obj = AuthUser.objects.filter(username=user_name).first()
+    if not user_obj:
+        from django.shortcuts import redirect
+        return redirect('/autotest/login/')
+    
     product_all = AutotestplatProduct.objects.filter(delete_flag='N')
-    product_id = AuthUser.objects.filter(username=user_name).first().last_name
-    product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+    product_id = user_obj.last_name
+    if product_id:
+        product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+    else:
+        product_name = ''
     c = csrf(request)
     c.update({"product_name":product_name,"product_alls":product_all})
     return render(request,"ai_testcase.html",c)
@@ -27,14 +39,21 @@ def getAiView(request):
 @csrf_exempt
 def loadAiTestcaseTable(request):
     username = request.session.get('user', '')
-    if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+    if not username:
+        return JsonResponse({'data': []})
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return JsonResponse({'data': []})
+    
+    if user_obj.is_superuser == 1:
+        items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
     else:
-        user_product_id = AuthUser.objects.filter(username=username).first().last_name
+        user_product_id = user_obj.last_name
         if user_product_id:
-            items = AutotestplatAiTestcase.objects.filter(Q(product_id=user_product_id)).values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+            items = AutotestplatAiTestcase.objects.filter(Q(product_id=user_product_id)).values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
         else:
-            items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id'))
+            items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
 
     rst = []
     for item in items:
@@ -71,10 +90,17 @@ def loadAiTestcaseTable(request):
 
 def loadretoAiTestcaseTable(request,require_id):
     username = request.session.get('user', '')
-    if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+    if not username:
+        return JsonResponse({'data': []})
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return JsonResponse({'data': []})
+    
+    if user_obj.is_superuser == 1:
         items = AutotestplatAiTestcase.objects.all().values_list('id','testcase_title','testcase_step','expect_result','result','charger','create_time','product_id').annotate(Count('id')).order_by('id')
     else:
-        user_product_id = AuthUser.objects.filter(username=username).first().last_name
+        user_product_id = user_obj.last_name
         if user_product_id:
             items = AutotestplatAiTestcase.objects.filter(Q(product_id=user_product_id)).filter(requirements_id=require_id).values_list('id','testcase_title','testcase_step','expect_result','result','charger','create_time','product_id').annotate(Count('id')).order_by('id')
         else:
@@ -104,12 +130,19 @@ def loadretoAiTestcaseTable(request,require_id):
 
 @csrf_exempt
 def addAitestcase(request):
-    ai_testcase_code = str(int(time.time()))
     username = request.session.get('user', '')
-    if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+    if not username:
+        return HttpResponse('401')
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return HttpResponse('401')
+    
+    ai_testcase_code = str(int(time.time()))
+    if user_obj.is_superuser == 1:
         product_id = ''
     else:
-        product_id = AuthUser.objects.filter(username=username).first().last_name
+        product_id = user_obj.last_name
     ai_testcase_result = '未执行'
     create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
     ai_testcase_name = request.POST.get('ai_testcase_name')
@@ -131,6 +164,14 @@ def addAitestcase(request):
 
 @csrf_exempt
 def loadAiOptions(request):
+    username = request.session.get('user', '')
+    if not username:
+        return JsonResponse([])
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return JsonResponse([])
+    
     aicase_result = []
     results = AutotestplatAiTestcase.objects.values('ai_testcase_result').distinct()
     for re in results:
@@ -140,6 +181,14 @@ def loadAiOptions(request):
 
 @csrf_exempt
 def deleteAitestcase(request):
+    username = request.session.get('user', '')
+    if not username:
+        return HttpResponse('401')
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return HttpResponse('401')
+    
     ai_testcase_code = request.POST.get('ai_testcase_code')
     AutotestplatAiTestcase.objects.filter(ai_testcase_code=ai_testcase_code).delete()
     return HttpResponse('200')
@@ -222,16 +271,23 @@ def showCopyAiTestcase(request):
 @csrf_exempt
 def modAitestcase(request):
     if request.method == "POST":
+        username = request.session.get('user', '')
+        if not username:
+            return HttpResponse('401')
+        
+        user_obj = AuthUser.objects.filter(username=username).first()
+        if not user_obj:
+            return HttpResponse('401')
+        
         raw_data = request.body
         raw_data = json.loads(raw_data)
         print(raw_data)
         id = raw_data['moddataObj']['id1']
         ai_testcase_code = id
-        username = request.session.get('user', '')
-        if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+        if user_obj.is_superuser == 1:
             product_id = ''
         else:
-            product_id = AuthUser.objects.filter(username=username).first().last_name
+            product_id = user_obj.last_name
         ai_testcase_result = '未执行'
         create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
         ai_testcase_name = raw_data['moddataObj']['ai_testcase_name']
@@ -260,14 +316,21 @@ def modAitestcase(request):
 @csrf_exempt
 def copyAitestcase(request):
     if request.method == "POST":
+        username = request.session.get('user', '')
+        if not username:
+            return HttpResponse('401')
+        
+        user_obj = AuthUser.objects.filter(username=username).first()
+        if not user_obj:
+            return HttpResponse('401')
+        
         raw_data = request.body
         raw_data = json.loads(raw_data)
         ai_testcase_code = str(int(time.time()))
-        username = request.session.get('user', '')
-        if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+        if user_obj.is_superuser == 1:
             product_id = ''
         else:
-            product_id = AuthUser.objects.filter(username=username).first().last_name
+            product_id = user_obj.last_name
         ai_testcase_result = '未执行'
         create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
         ai_testcase_name = raw_data['copydataObj']['ai_testcase_name']
@@ -290,6 +353,14 @@ def copyAitestcase(request):
 
 @csrf_exempt
 def runAitestcase(request):
+    username = request.session.get('user', '')
+    if not username:
+        return HttpResponse('401')
+    
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return HttpResponse('401')
+    
     raw_data = request.body
     raw_data = json.loads(raw_data)
     ai_testcase_code = raw_data['rundataObj']['id1']

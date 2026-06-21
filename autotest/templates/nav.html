@@ -1,69 +1,282 @@
-<div class="row" >
-        <div class="col-sm">
-            <ul class="nav nav-pills nav-pills-success nav-pills-square nav-light bg-white pa-15 fixed-top">
-                <li class="nav-item">
-                    <a href={% url 'product' %} class="nav-link"  data-menu="product"> 产品管理 </a>
-                </li>
-                <li class="nav-item dropdown" id="testDropdown">
-                <a id="functiontest" class="nav-link" data-menu="functiontest"> 功能测试 </a>
-                <ul class="dropdown-menu" id="testDropdownMenu">
-                    <li><a href={% url 'iteration' %} class="nav-link"  data-menu="iteration"> 迭代版本 </a></li>
-                    <li><a href={% url 'requirements' %} class="nav-link" data-menu="requirements"> 迭代需求 </a></li>
-                    <li><a href={% url 'aitestcasetemp' %} class="nav-link" data-menu="aitestcasetemp"> AI测试用例 </a></li>
-                    <li><a href={% url 'aitestcase' %} class="nav-link" data-menu="aitestcase"> 测试用例 </a></li>
-                    <li><a href={% url 'buglist' %} class="nav-link" data-menu="buglist"> 缺陷管理 </a></li>
-                    <li><a href={% url 'testreport' %} class="nav-link" data-menu="testreport"> 测试报告 </a></li>
-                </ul>
-                </li>
-                <li class="nav-item dropdown" id="apitestDropdown">
-                <a id="apitest" class="nav-link" data-menu="apitest"> 接口自动化测试 </a>
-                <ul class="dropdown-menu" id="apitestDropdownMenu">
-                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> 接口 </a></li>
-{#                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> AI接口用例 </a></li>#}
-                    <li><a href={% url 'apitestplan' %} class="nav-link" data-menu="apitestplan"> 测试计划 </a></li>
-                    <li><a href={% url 'apireport' %} class="nav-link" data-menu="apireport"> 接口测试报告 </a></li>
-                </ul>
-                </li>
-                <li class="nav-item">
-                    <a href={% url 'apiperformance' %} class="nav-link" data-menu="apiperformance"> 性能测试 </a>
-                </li>
-                <li class="nav-item dropdown" id="uiDropdown">
-                <a id="uitest" class="nav-link" data-menu="uitest"> UI自动化测试 </a>
-                <ul class="dropdown-menu" id="uiDropdownMenu">
-                    <li><a href={% url 'apptestcase' %} class="nav-link" data-menu="apptestcase"> AppUI测试 </a></li>
-                    <li><a href={% url 'webtestcase' %} class="nav-link" data-menu="webtestcase"> WebUI测试 </a></li>
-                </ul>
-                </li>
-                <li class="nav-item">
-                    <a href={% url 'parasettings' %} class="nav-link" data-menu="parasettings"> 系统设置 </a>
-                </li>
-                <li class="nav-item">
-                    <a href={% url 'user' %} class="nav-link" data-menu="user"> 用户管理 </a>
-                </li>
-                <li class="nav-item">
-                    <a href={% url 'ai' %} class="nav-link" data-menu="ai"> AI助手 </a>
-                </li>
-                <li class="nav-item" id="cur_product" style="margin-left: 150px">
-                    <select id="select-option" name="setInput"  onchange="saveOption()">
-                        <option>{{ product_name|truncatechars:15 }}</option>
-                        {% for product in product_alls %}
-                        <option value="{{ product.product_name }}">
-                            {% if product.product_name == product_name %}
-                                    {{ product.product_name|truncatechars:15 }} ✓  <!-- 显示 ✓ -->
-                            {% else %}
-                                {{ product.product_name|truncatechars:15 }}
-                            {% endif %}
-                        </option>
-                       {% endfor %}
-                    </select>
-                </li>
-                <li class="nav-item dropdown-user" id="navUser">
-                    <a href="#" class="nav-link" id="userName" style="font-size: 13px"></a>
-                <ul class="dropdown-menu" id="userDropdownMenu">
-                    <li> <a href="https://docs.qq.com/doc/DSVNlZ0xoUWpHYlpx?u=2f0ea49eb4e247f5b3c604c3d58ef026" class="nav-link" style="font-size: 13px" target="_black">使用手册</a></li>
-                    <li><a class="nav-link" onclick="logout()" style="font-size: 12px"> 退出 </a></li>
-                </ul>
-                </li>
-            </ul>
-        </div>
+<!-- Deleted:<div class="row" > -->
+<!-- Deleted:        <div class="col-sm"> -->
+<!-- Deleted:            <ul class="nav nav-pills nav-pills-success nav-pills-square nav-light bg-white pa-15 fixed-top"> -->
+<!-- Deleted:                <li class="nav-item"> -->
+<!-- Deleted:                    <a href={% url 'product' %} class="nav-link"  data-menu="product"> 产品管理 </a> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item dropdown" id="testDropdown"> -->
+<!-- Deleted:                <a id="functiontest" class="nav-link" data-menu="functiontest"> 功能测试 </a> -->
+<!-- Deleted:                <ul class="dropdown-menu" id="testDropdownMenu"> -->
+<!-- Deleted:                    <li><a href={% url 'iteration' %} class="nav-link"  data-menu="iteration"> 迭代版本 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'requirements' %} class="nav-link" data-menu="requirements"> 迭代需求 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'aitestcasetemp' %} class="nav-link" data-menu="aitestcasetemp"> AI测试用例 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'aitestcase' %} class="nav-link" data-menu="aitestcase"> 测试用例 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'buglist' %} class="nav-link" data-menu="buglist"> 缺陷管理 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'testreport' %} class="nav-link" data-menu="testreport"> 测试报告 </a></li> -->
+<!-- Deleted:                </ul> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item dropdown" id="apitestDropdown"> -->
+<!-- Deleted:                <a id="apitest" class="nav-link" data-menu="apitest"> 接口自动化测试 </a> -->
+<!-- Deleted:                <ul class="dropdown-menu" id="apitestDropdownMenu"> -->
+<!-- Deleted:                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> 接口 </a></li> -->
+<!-- Deleted:{#                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> AI接口用例 </a></li>#} -->
+<!-- Deleted:                    <li><a href={% url 'apitestplan' %} class="nav-link" data-menu="apitestplan"> 测试计划 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'apireport' %} class="nav-link" data-menu="apireport"> 接口测试报告 </a></li> -->
+<!-- Deleted:                </ul> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item"> -->
+<!-- Deleted:                    <a href={% url 'apiperformance' %} class="nav-link" data-menu="apiperformance"> 性能测试 </a> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item dropdown" id="uiDropdown"> -->
+<!-- Deleted:                <a id="uitest" class="nav-link" data-menu="uitest"> UI自动化测试 </a> -->
+<!-- Deleted:                <ul class="dropdown-menu" id="uiDropdownMenu"> -->
+<!-- Deleted:                    <li><a href={% url 'apptestcase' %} class="nav-link" data-menu="apptestcase"> AppUI测试 </a></li> -->
+<!-- Deleted:                    <li><a href={% url 'webtestcase' %} class="nav-link" data-menu="webtestcase"> WebUI测试 </a></li> -->
+<!-- Deleted:                </ul> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item"> -->
+<!-- Deleted:                    <a href={% url 'parasettings' %} class="nav-link" data-menu="parasettings"> 系统设置 </a> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item"> -->
+<!-- Deleted:                    <a href={% url 'user' %} class="nav-link" data-menu="user"> 用户管理 </a> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item"> -->
+<!-- Deleted:                    <a href={% url 'ai' %} class="nav-link" data-menu="ai"> AI助手 </a> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item" id="cur_product" style="margin-left: 150px"> -->
+<!-- Deleted:                    <select id="select-option" name="setInput"  onchange="saveOption()"> -->
+<!-- Deleted:                        {% for product in product_alls %} -->
+<!-- Deleted:                        <option value="{{ product.product_name }}"{% if product.product_name == product_name %} selected{% endif %}> -->
+<!-- Deleted:                            {{ product.product_name|truncatechars:15 }}{% if product.product_name == product_name %} ✓{% endif %} -->
+<!-- Deleted:                        </option> -->
+<!-- Deleted:                       {% endfor %} -->
+<!-- Deleted:                    </select> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:                <li class="nav-item dropdown-user" id="navUser"> -->
+<!-- Deleted:                    <a href="#" class="nav-link" id="userName" style="font-size: 13px"></a> -->
+<!-- Deleted:                <ul class="dropdown-menu" id="userDropdownMenu"> -->
+<!-- Deleted:                    <li> <a href="https://docs.qq.com/doc/DSVNlZ0xoUWpHYlpx?u=2f0ea49eb4e247f5b3c604c3d58ef026" class="nav-link" style="font-size: 13px" target="_black">使用手册</a></li> -->
+<!-- Deleted:                    <li><a class="nav-link" onclick="logout()" style="font-size: 12px"> 退出 </a></li> -->
+<!-- Deleted:                </ul> -->
+<!-- Deleted:                </li> -->
+<!-- Deleted:            </ul> -->
+<!-- Deleted:        </div> -->
+<!-- Deleted:    </div> -->
+
+<div class="sidebar-wrapper" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-text" style="font-weight: bold; font-size: 18px;">测试平台</span>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
     </div>
+
+    <div class="sidebar-product-select">
+        <select id="select-option" name="setInput" onchange="saveOption()">
+            {% for product in product_alls %}
+            <option value="{{ product.product_name }}"{% if product.product_name == product_name %} selected{% endif %}>
+                {{ product.product_name|truncatechars:20 }}{% if product.product_name == product_name %} ✓{% endif %}
+            </option>
+           {% endfor %}
+        </select>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li class="sidebar-item">
+            <a href="{% url 'product' %}" class="sidebar-link" data-menu="product">
+                <span class="sidebar-icon">📦</span>
+                <span class="sidebar-text">产品管理</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item" id="functiontest">
+            <a class="sidebar-link" data-menu="functiontest" onclick="toggleSubmenu(this)">
+                <span class="sidebar-icon">🧪</span>
+                <span class="sidebar-text">功能测试</span>
+                <span class="sidebar-arrow">▶</span>
+            </a>
+            <ul class="sidebar-submenu">
+                <li><a href="{% url 'iteration' %}" class="sidebar-link" data-menu="iteration">
+                    <span class="sidebar-text">迭代版本</span>
+                </a></li>
+                <li><a href="{% url 'requirements' %}" class="sidebar-link" data-menu="requirements">
+                    <span class="sidebar-text">迭代需求</span>
+                </a></li>
+                <li><a href="{% url 'aitestcasetemp' %}" class="sidebar-link" data-menu="aitestcasetemp">
+                    <span class="sidebar-text">AI测试用例</span>
+                </a></li>
+                <li><a href="{% url 'aitestcase' %}" class="sidebar-link" data-menu="aitestcase">
+                    <span class="sidebar-text">测试用例</span>
+                </a></li>
+                <li><a href="{% url 'buglist' %}" class="sidebar-link" data-menu="buglist">
+                    <span class="sidebar-text">缺陷管理</span>
+                </a></li>
+                <li><a href="{% url 'testreport' %}" class="sidebar-link" data-menu="testreport">
+                    <span class="sidebar-text">测试报告</span>
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="sidebar-item" id="apitest">
+            <a class="sidebar-link" data-menu="apitest" onclick="toggleSubmenu(this)">
+                <span class="sidebar-icon">🔌</span>
+                <span class="sidebar-text">接口自动化测试</span>
+                <span class="sidebar-arrow">▶</span>
+            </a>
+            <ul class="sidebar-submenu">
+                <li><a href="{% url 'apitestcase' %}" class="sidebar-link" data-menu="apitestcase">
+                    <span class="sidebar-text">接口</span>
+                </a></li>
+                <li><a href="{% url 'apitestplan' %}" class="sidebar-link" data-menu="apitestplan">
+                    <span class="sidebar-text">测试计划</span>
+                </a></li>
+                <li><a href="{% url 'apireport' %}" class="sidebar-link" data-menu="apireport">
+                    <span class="sidebar-text">接口测试报告</span>
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="{% url 'apiperformance' %}" class="sidebar-link" data-menu="apiperformance">
+                <span class="sidebar-icon">⚡</span>
+                <span class="sidebar-text">性能测试</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item" id="uitest">
+            <a class="sidebar-link" data-menu="uitest" onclick="toggleSubmenu(this)">
+                <span class="sidebar-icon">🖥️</span>
+                <span class="sidebar-text">UI自动化测试</span>
+                <span class="sidebar-arrow">▶</span>
+            </a>
+            <ul class="sidebar-submenu">
+                <li><a href="{% url 'apptestcase' %}" class="sidebar-link" data-menu="apptestcase">
+                    <span class="sidebar-text">AppUI测试</span>
+                </a></li>
+                <li><a href="{% url 'webtestcase' %}" class="sidebar-link" data-menu="webtestcase">
+                    <span class="sidebar-text">WebUI测试</span>
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="{% url 'parasettings' %}" class="sidebar-link" data-menu="parasettings">
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-text">系统设置</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="{% url 'user' %}" class="sidebar-link" data-menu="user">
+                <span class="sidebar-icon">👥</span>
+                <span class="sidebar-text">用户管理</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item">
+            <a href="{% url 'ai' %}" class="sidebar-link" data-menu="ai">
+                <span class="sidebar-icon">🤖</span>
+                <span class="sidebar-text">AI助手</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- 固定在底部的退出登录区域 -->
+    <div class="sidebar-footer-fixed">
+        <a href="#" class="sidebar-logout" onclick="logout()">
+            <span class="sidebar-icon">🚪</span>
+            <span class="sidebar-text">退出登录</span>
+        </a>
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    sidebar.classList.toggle('collapsed');
+
+    // 立即更新主内容区域的margin
+    if (sidebar.classList.contains('collapsed')) {
+        if (mainContent) {
+            mainContent.style.marginLeft = '60px';
+        }
+    } else {
+        if (mainContent) {
+            mainContent.style.marginLeft = '250px';
+        }
+    }
+
+    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+}
+
+function toggleSubmenu(element) {
+    const parentItem = element.parentElement;
+    parentItem.classList.toggle('open');
+
+    // 展开/收起子菜单时，确保退出登录按钮保持在底部
+    setTimeout(() => {
+        adjustFooterPosition();
+    }, 300);
+}
+
+// 调整底部退出登录按钮位置
+function adjustFooterPosition() {
+    const sidebar = document.getElementById('sidebar');
+    const footer = document.querySelector('.sidebar-footer-fixed');
+    const menu = document.querySelector('.sidebar-menu');
+
+    if (!footer || !menu) return;
+
+    // 计算菜单的实际高度
+    const menuHeight = menu.offsetHeight;
+    const sidebarHeight = sidebar.offsetHeight;
+    const headerHeight = document.querySelector('.sidebar-header').offsetHeight;
+    const productSelectHeight = document.querySelector('.sidebar-product-select').offsetHeight;
+
+    // 如果菜单内容较少，让footer固定在底部
+    const contentHeight = headerHeight + productSelectHeight + menuHeight;
+
+    if (contentHeight < sidebarHeight - 60) {
+        footer.style.position = 'absolute';
+        footer.style.bottom = '0';
+    } else {
+        footer.style.position = 'relative';
+        footer.style.bottom = 'auto';
+    }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        if (mainContent) {
+            mainContent.style.marginLeft = '60px';
+        }
+    }
+
+    const currentPath = window.location.pathname;
+    const menuLinks = document.querySelectorAll('.sidebar-link[data-menu]');
+
+    menuLinks.forEach(function(link) {
+        if (link.getAttribute('href') === currentPath ||
+            link.getAttribute('data-menu') && currentPath.includes(link.getAttribute('data-menu'))) {
+            link.classList.add('active');
+
+            const parentItem = link.closest('.sidebar-item');
+            if (parentItem && parentItem.querySelector('.sidebar-submenu')) {
+                parentItem.classList.add('open');
+            }
+        }
+    });
+
+    // 初始化时调整footer位置
+    adjustFooterPosition();
+});
+
+// 监听窗口大小变化
+window.addEventListener('resize', function() {
+    adjustFooterPosition();
+});
+</script>

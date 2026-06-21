@@ -8,6 +8,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
     <title>接口测试 - 添加接口</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/fileinput.min.css">
+    <link href="/static/css/sidebar.css" rel="stylesheet" type="text/css">
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/public.js"></script>
@@ -24,6 +25,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
     </script>
 </head>
 <body>
+<div class="main-content">
 <form target="_parent" id="form_add_window" method="post" action='/autotest/apitestcase/add/'>
     {% csrf_token %}
     <div class="modal-body">
@@ -324,6 +326,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
 
     </div>
 </form>
+</div>
 
 <script type="text/javascript">
 

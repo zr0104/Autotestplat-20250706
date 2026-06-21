@@ -1,0 +1,64 @@
+<div class="row" >
+        <div class="col-sm">
+            <ul class="nav nav-pills nav-pills-success nav-pills-square nav-light bg-white pa-15 fixed-top">
+                <li class="nav-item">
+                    <a href={% url 'product' %} class="nav-link"  data-menu="product"> 产品管理 </a>
+                </li>
+                <li class="nav-item dropdown" id="testDropdown">
+                <a id="functiontest" class="nav-link" data-menu="functiontest"> 功能测试 </a>
+                <ul class="dropdown-menu" id="testDropdownMenu">
+                    <li><a href={% url 'iteration' %} class="nav-link"  data-menu="iteration"> 迭代版本 </a></li>
+                    <li><a href={% url 'requirements' %} class="nav-link" data-menu="requirements"> 迭代需求 </a></li>
+                    <li><a href={% url 'aitestcasetemp' %} class="nav-link" data-menu="aitestcasetemp"> AI测试用例 </a></li>
+                    <li><a href={% url 'aitestcase' %} class="nav-link" data-menu="aitestcase"> 测试用例 </a></li>
+                    <li><a href={% url 'buglist' %} class="nav-link" data-menu="buglist"> 缺陷管理 </a></li>
+                    <li><a href={% url 'testreport' %} class="nav-link" data-menu="testreport"> 测试报告 </a></li>
+                </ul>
+                </li>
+                <li class="nav-item dropdown" id="apitestDropdown">
+                <a id="apitest" class="nav-link" data-menu="apitest"> 接口自动化测试 </a>
+                <ul class="dropdown-menu" id="apitestDropdownMenu">
+                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> 接口 </a></li>
+{#                    <li><a href={% url 'apitestcase' %} class="nav-link" data-menu="apitestcase"> AI接口用例 </a></li>#}
+                    <li><a href={% url 'apitestplan' %} class="nav-link" data-menu="apitestplan"> 测试计划 </a></li>
+                    <li><a href={% url 'apireport' %} class="nav-link" data-menu="apireport"> 接口测试报告 </a></li>
+                </ul>
+                </li>
+                <li class="nav-item">
+                    <a href={% url 'apiperformance' %} class="nav-link" data-menu="apiperformance"> 性能测试 </a>
+                </li>
+                <li class="nav-item dropdown" id="uiDropdown">
+                <a id="uitest" class="nav-link" data-menu="uitest"> UI自动化测试 </a>
+                <ul class="dropdown-menu" id="uiDropdownMenu">
+                    <li><a href={% url 'apptestcase' %} class="nav-link" data-menu="apptestcase"> AppUI测试 </a></li>
+                    <li><a href={% url 'webtestcase' %} class="nav-link" data-menu="webtestcase"> WebUI测试 </a></li>
+                </ul>
+                </li>
+                <li class="nav-item">
+                    <a href={% url 'parasettings' %} class="nav-link" data-menu="parasettings"> 系统设置 </a>
+                </li>
+                <li class="nav-item">
+                    <a href={% url 'user' %} class="nav-link" data-menu="user"> 用户管理 </a>
+                </li>
+                <li class="nav-item">
+                    <a href={% url 'ai' %} class="nav-link" data-menu="ai"> AI助手 </a>
+                </li>
+                <li class="nav-item" id="cur_product" style="margin-left: 150px">
+                    <select id="select-option" name="setInput"  onchange="saveOption()">
+                        {% for product in product_alls %}
+                        <option value="{{ product.product_name }}"{% if product.product_name == product_name %} selected{% endif %}>
+                            {{ product.product_name|truncatechars:15 }}{% if product.product_name == product_name %} ✓{% endif %}
+                        </option>
+                       {% endfor %}
+                    </select>
+                </li>
+                <li class="nav-item dropdown-user" id="navUser">
+                    <a href="#" class="nav-link" id="userName" style="font-size: 13px"></a>
+                <ul class="dropdown-menu" id="userDropdownMenu">
+                    <li> <a href="https://docs.qq.com/doc/DSVNlZ0xoUWpHYlpx?u=2f0ea49eb4e247f5b3c604c3d58ef026" class="nav-link" style="font-size: 13px" target="_black">使用手册</a></li>
+                    <li><a class="nav-link" onclick="logout()" style="font-size: 12px"> 退出 </a></li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+    </div>

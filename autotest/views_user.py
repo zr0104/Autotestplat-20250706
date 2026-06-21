@@ -15,6 +15,27 @@ from django.contrib.auth import login
 from django.contrib import auth
 from django.contrib.auth.hashers import make_password
 
+
+def get_user_product_info(username):
+    """
+    安全获取用户的产品信息
+    返回: (product_id, product_name) 元组，如果不存在则返回 (None, '')
+    """
+    user_obj = AuthUser.objects.filter(username=username).first()
+    if not user_obj:
+        return None, ''
+    
+    product_id = user_obj.last_name
+    if not product_id:
+        return None, ''
+    
+    product_obj = AutotestplatProduct.objects.filter(id=product_id).first()
+    if product_obj:
+        return product_id, product_obj.product_name
+    
+    return None, ''
+
+
 def loginView(request):
     return render(request, 'login.html')
 
@@ -46,8 +67,8 @@ def logout(request):
 def userView(request):
     user_name = request.session.get('user', '')
     product_all = AutotestplatProduct.objects.filter(delete_flag='N')
-    product_id = AuthUser.objects.filter(username=user_name).first().last_name
-    product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name
+    product_id, product_name = get_user_product_info(user_name)
+    
     c = csrf(request)
     c.update({"product_name":product_name,"product_alls":product_all})
     return render(request,"user.html",c)
@@ -58,22 +79,36 @@ def loadUser(request):
     rst = []
     for item in items:
         arr = []
-        tmp_ids =AutotestplatProduct.objects.all().values_list().order_by('id')
+        tmp_ids = AutotestplatProduct.objects.all().values_list().order_by('id')
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if(item[6]==None or item[6]==''):
-            count=0
+        
+        # 安全处理产品ID和产品名称
+        product_id_value = item[6] if len(item) > 6 else None
+        if product_id_value is None or product_id_value == '':
+            count = 0
         else:
-            count = tmp.count(int(item[6]))
-        if count>0:
-            product_name=AutotestplatProduct.objects.filter(id=item[6]).first().product_name
-            item_list = list(item)
-            item_list[6] = product_name
-            item = tuple(item_list)
+            try:
+                count = tmp.count(int(product_id_value))
+            except (ValueError, TypeError):
+                count = 0
+        
+        if count > 0:
+            try:
+                product_obj = AutotestplatProduct.objects.filter(id=int(product_id_value)).first()
+                if product_obj:
+                    product_name = product_obj.product_name
+                    item_list = list(item)
+                    item_list[6] = product_name
+                    item = tuple(item_list)
+            except (ValueError, TypeError):
+                pass
+        
         for j in item:
             arr.append(j)
         rst.append(arr)
+    
     realRst = {'data': rst}
     return JsonResponse(realRst)
 
@@ -176,8 +211,7 @@ def updateUser(request,userName):
 @csrf_exempt
 def getUserProduct(request):
     user_name = request.session.get('user', '')
-    product_id=AuthUser.objects.filter(username=user_name).first().last_name
-    product_name=AutotestplatProduct.objects.filter(id=product_id).first().product_name
+    _, product_name = get_user_product_info(user_name)
     return HttpResponse(product_name)
 
 @csrf_exempt

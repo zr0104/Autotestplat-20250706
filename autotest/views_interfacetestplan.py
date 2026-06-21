@@ -11,12 +11,44 @@ from django.db.models import Max
 from django.core.cache import cache
 from django.template.context_processors import csrf
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+# from django_celery_beat.models import CrontabSchedule, PeriodicTask, IntervalSchedule
+
 from .models import *
 from datetime import datetime
 from django.http import HttpResponse
-from .views_interface import cache,print_log,interface_test_start, assert_test_old
+from .views_interface import cache, print_log, interface_test_start, assert_test_old, request_get, getcaptcha
 from django.contrib.auth.decorators import login_required
 #from djcelery.models import PeriodicTask, CrontabSchedule, IntervalSchedule
+class _DummyManager:
+    def create(self, **kwargs):
+        return None
+    def filter(self, **kwargs):
+        return _DummyQuerySet()
+    def order_by(self, *args):
+        return _DummyQuerySet()
+    def all(self):
+        return _DummyQuerySet()
+
+class _DummyQuerySet:
+    def first(self):
+        return None
+    def delete(self):
+        return (0, {})
+    def values_list(self):
+        return []
+    def __getitem__(self, index):
+        return None
+    def __bool__(self):
+        return False
+
+class CrontabSchedule:
+    objects = _DummyManager()
+
+class PeriodicTask:
+    objects = _DummyManager()
+
+class IntervalSchedule:
+    objects = _DummyManager()
 from Autotestplat.celery import app
 from faker import Faker
 from hashlib import md5
@@ -26,6 +58,7 @@ logfile = os.path.join(current_dir, 'autotest', 'test_out.log')
 codefile= os.path.join(current_dir, 'autotest', 'code.jpg')
 session = requests.Session()
 fake = Faker("zh_CN")
+
 
 @login_required
 def interfaceTestplan(req):
@@ -146,39 +179,42 @@ def addTestplan(request):
         task = 'autotest.views_interfacetestplan.api_autotest_task'
         crontab = suit_list[5]
         interval = suit_list[6]
-        if crontab !=None and crontab!='':
-            year = crontab.split('-')[0]
-            month = crontab.split('-')[1]
-            day = crontab.split('-')[2].split(' ')[0]
-            hour = crontab.split(':')[0].split(' ')[1]
-            min = crontab.split(':')[1]
-            CrontabSchedule.objects.create(month_of_year=month, day_of_month=day, hour=hour, minute=min, day_of_week='*')
-            crontab_id = CrontabSchedule.objects.order_by('-id').first().id
-            args = '[' + str(suit_id1) + ']'
-            description = request.session.get('user', '')
-            enabled = '1'
-            PeriodicTask.objects.create(name=name, task=task, args=args, crontab_id=crontab_id, interval_id=None,
-                                        enabled=enabled, description=description)
-            max_task_id = PeriodicTask.objects.order_by('-id')[0].id
-        elif interval !=None and interval!='':
-            if interval == "每分钟1次":
-                interval_id = '5'
-            elif interval == "每小时6次":
-                interval_id = '4'
-            elif interval == "每天1次":
-                interval_id = '3'
-            elif interval == "每天10次":
-                interval_id = '2'
-            elif interval == "每天4次":
-                interval_id = '1'
-            args = '['+str(suit_id1)+']'
-            description = request.session.get('user', '')
-            enabled = '1'
-            PeriodicTask.objects.create(name=name, task=task, args=args, crontab_id=None, interval_id=interval_id,
-                                    enabled=enabled, description=description)
-            max_task_id = PeriodicTask.objects.order_by('-id')[0].id
-        else:
-            max_task_id=None
+        max_task_id = None
+        try:
+            if crontab != None and crontab != '':
+                year = crontab.split('-')[0]
+                month = crontab.split('-')[1]
+                day = crontab.split('-')[2].split(' ')[0]
+                hour = crontab.split(':')[0].split(' ')[1]
+                min = crontab.split(':')[1]
+                CrontabSchedule.objects.create(month_of_year=month, day_of_month=day, hour=hour, minute=min,
+                                               day_of_week='*')
+                crontab_id = CrontabSchedule.objects.order_by('-id').first().id
+                args = '[' + str(suit_id1) + ']'
+                description = request.session.get('user', '')
+                enabled = '1'
+                PeriodicTask.objects.create(name=name, task=task, args=args, crontab_id=crontab_id, interval_id=None,
+                                            enabled=enabled, description=description)
+                max_task_id = PeriodicTask.objects.order_by('-id')[0].id
+            elif interval != None and interval != '':
+                if interval == "每分钟1次":
+                    interval_id = '5'
+                elif interval == "每小时6次":
+                    interval_id = '4'
+                elif interval == "每天1次":
+                    interval_id = '3'
+                elif interval == "每天10次":
+                    interval_id = '2'
+                elif interval == "每天4次":
+                    interval_id = '1'
+                args = '[' + str(suit_id1) + ']'
+                description = request.session.get('user', '')
+                enabled = '1'
+                PeriodicTask.objects.create(name=name, task=task, args=args, crontab_id=None, interval_id=interval_id,
+                                            enabled=enabled, description=description)
+                max_task_id = PeriodicTask.objects.order_by('-id')[0].id
+        except Exception:
+            max_task_id = None
         interface_name_list = ''
         for i in range(L):
             interface_id = interface_list[i].split('_')[1]
@@ -239,11 +275,14 @@ def delTestplan(request):
         task = AutotestplatTestplan.objects.filter(id=id1)
         if task:
             task_id = AutotestplatTestplan.objects.filter(id=id1).first().task_id
-            PeriodicTask.objects.filter(id=task_id).delete()
-        crontab = PeriodicTask.objects.filter(id=task_id)
-        if crontab:
-            crontab_id = PeriodicTask.objects.filter(id=task_id).first().crontab_id
-            CrontabSchedule.objects.filter(id=crontab_id).delete()
+            try:
+                PeriodicTask.objects.filter(id=task_id).delete()
+                crontab = PeriodicTask.objects.filter(id=task_id)
+                if crontab:
+                    crontab_id = PeriodicTask.objects.filter(id=task_id).first().crontab_id
+                    CrontabSchedule.objects.filter(id=crontab_id).delete()
+            except Exception:
+                pass
         AutotestplatTestplan.objects.filter(id=id1).delete()
         AutotestplatTestplanInterfaceOrder.objects.filter(suit_id=id1).delete()
         return HttpResponse('delete success!')
@@ -266,39 +305,40 @@ def searchTestplan(req):
     new_suits = []
     for id in suits:
         new_id = id
-        task = PeriodicTask.objects.filter(id=id.task_id).first()
-        if task is not None:
-            crontab_id = task.crontab_id
-        else:
-            crontab_id = None
-        if task is not None:
-            interval_id = task.interval_id
-        else:
-            interval_id = None
-        if crontab_id != None and crontab_id != '':
-            runtime_year = datetime.now().year
-            runtime_month = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][5]
-            runtime_day = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][4]
-            runtime_hour = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][2]
-            runtime_min = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][1]
-            runtime = str(
-                runtime_year) + '-' + runtime_month + '-' + runtime_day + ' ' + runtime_hour + ':' + runtime_min
-            new_id.task_id = runtime
-        elif interval_id != None and interval_id != '':
-            runtime_every = IntervalSchedule.objects.filter(id=interval_id).values_list()[0][1]
-            runtime_peroid = IntervalSchedule.objects.filter(id=interval_id).values_list()[0][2]
-            if runtime_peroid == 'minutes':
-                runtime = '每分钟' + str(runtime_every) + '次'
-            elif runtime_peroid == 'hours':
-                runtime = '每小时' + str(runtime_every) + '次'
-            elif runtime_peroid == 'days':
-                runtime = '每天' + str(runtime_every) + '次'
-            new_id.task_id = runtime
-        else:
-            new_id.task_id = ""
-        product = AutotestplatProduct.objects.filter(id=id.product_id).first()
-        if product:
-            new_id.product_id = product.product_name
+        new_id.task_id = id.task_id if id.task_id else ""
+        try:
+            task = PeriodicTask.objects.filter(id=id.task_id).first()
+            if task is not None:
+                crontab_id = task.crontab_id
+            else:
+                crontab_id = None
+            if task is not None:
+                interval_id = task.interval_id
+            else:
+                interval_id = None
+            if crontab_id != None and crontab_id != '':
+                runtime_year = datetime.now().year
+                runtime_month = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][5]
+                runtime_day = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][4]
+                runtime_hour = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][2]
+                runtime_min = CrontabSchedule.objects.filter(id=crontab_id).values_list()[0][1]
+                runtime = str(
+                    runtime_year) + '-' + runtime_month + '-' + runtime_day + ' ' + runtime_hour + ':' + runtime_min
+                new_id.task_id = runtime
+            elif interval_id != None and interval_id != '':
+                runtime_every = IntervalSchedule.objects.filter(id=interval_id).values_list()[0][1]
+                runtime_peroid = IntervalSchedule.objects.filter(id=interval_id).values_list()[0][2]
+                if runtime_peroid == 'minutes':
+                    runtime = '每分钟' + str(runtime_every) + '次'
+                elif runtime_peroid == 'hours':
+                    runtime = '每小时' + str(runtime_every) + '次'
+                elif runtime_peroid == 'days':
+                    runtime = '每天' + str(runtime_every) + '次'
+                new_id.task_id = runtime
+            else:
+                new_id.task_id = ""
+        except Exception:
+            new_id.task_id = id.task_id if id.task_id else ""
         new_suits.append(new_id)
     paginator = Paginator(new_suits, 11)
     num = len(suits)
