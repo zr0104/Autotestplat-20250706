@@ -1,5 +1,7 @@
 import os,re,json,traceback,copy,random,string,time,redis,ast,requests,codecs
-from django.shortcuts import render
+
+from django.db import connection
+from django.shortcuts import render, redirect
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
 from django.db.models import Q
@@ -270,7 +272,8 @@ def report(request):
         return HttpResponse(error_msg, status=404)
 
     from django.shortcuts import render
-    return render(request, "output/index.html")
+    # return render(request, "output/index.html")
+    return redirect('/static/output/index.html')
 
 # ... existing code ...
 
@@ -370,18 +373,28 @@ def generateJmeterFile(request):
                 domain = url_host
                 path = '{uri.path}'.format(uri=parsed_uri)
                 path2 = path.replace('//%','?')
-                if url_host.startswith('http://') or url_host.startswith('https://'):
-                    host = domain.split(':')[1].replace('//', '')
-                    if len(domain.split(':')) > 2:
-                        port = domain.split(':')[2]
+                try:
+                    parsed_url = urlparse(url_host)
+                    host = parsed_url.hostname or parsed_url.netloc.split(':')[0]
+                    port = str(parsed_url.port) if parsed_url.port else ''
+                except Exception:
+                    if url_host.startswith('http://') or url_host.startswith('https://'):
+                        temp_host = url_host.split('://')[1]
+                        if ':' in temp_host:
+                            host_port = temp_host.split(':', 1)
+                            host = host_port[0]
+                            port = host_port[1].split('/')[0] if '/' in host_port[1] else host_port[1]
+                        else:
+                            host = temp_host.split('/')[0]
+                            port = ''
                     else:
-                        port = ''
-                else:
-                    host = domain.split(':')[0]
-                    if len(domain.split(':')) > 1:
-                        port = domain.split(':')[1]
-                    else:
-                        port = ''
+                        if ':' in url_host:
+                            host_port = url_host.split(':', 1)
+                            host = host_port[0]
+                            port = host_port[1].split('/')[0] if '/' in host_port[1] else host_port[1]
+                        else:
+                            host = url_host.split('/')[0]
+                            port = ''
                 head1 = eval(head)
                 head_list1 = []
                 for item, value in head1.items():
@@ -490,18 +503,30 @@ def generateJmeterFile(request):
                 domain = url_host
                 path = '{uri.path}'.format(uri=parsed_uri)
                 path2 = path.replace('//%', '?')
-                if url_host.startswith('http://') or url_host.startswith('https://'):
-                    host = domain.split(':')[1].replace('//', '')
-                    if len(domain.split(':')) > 2:
-                        port = domain.split(':')[2]
+
+                try:
+                    parsed_url = urlparse(url_host)
+                    host = parsed_url.hostname or parsed_url.netloc.split(':')[0]
+                    port = str(parsed_url.port) if parsed_url.port else ''
+                except Exception:
+                    if url_host.startswith('http://') or url_host.startswith('https://'):
+                        temp_host = url_host.split('://')[1]
+                        if ':' in temp_host:
+                            host_port = temp_host.split(':', 1)
+                            host = host_port[0]
+                            port = host_port[1].split('/')[0] if '/' in host_port[1] else host_port[1]
+                        else:
+                            host = temp_host.split('/')[0]
+                            port = ''
                     else:
-                        port = ''
-                else:
-                    host = domain.split(':')[0]
-                    if len(domain.split(':')) > 1:
-                        port = domain.split(':')[1]
-                    else:
-                        port = ''
+                        if ':' in url_host:
+                            host_port = url_host.split(':', 1)
+                            host = host_port[0]
+                            port = host_port[1].split('/')[0] if '/' in host_port[1] else host_port[1]
+                        else:
+                            host = url_host.split('/')[0]
+                            port = ''
+
                 head2 = eval(head)
                 head_list2 = []
                 for item,value in head2.items():

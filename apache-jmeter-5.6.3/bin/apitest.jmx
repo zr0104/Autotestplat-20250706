@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+<jmeterTestPlan version="1.2" properties="4.0" jmeter="4.0 r1823414">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="测试计划" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
@@ -12,23 +12,27 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
-  <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV 数据文件设置" enabled="true">
-    <stringProp name="filename">C:/Users/87389/PycharmProjects/Autotestplat-20250706/autotest/users.txt</stringProp>
-      <stringProp name="fileEncoding"></stringProp>
-      <stringProp name="variableNames">username,password</stringProp>
-       <boolProp name="ignoreFirstLine">false</boolProp>
-       <stringProp name="delimiter">,</stringProp>
-       <boolProp name="quotedData">false</boolProp>
-       <boolProp name="recycle">true</boolProp>
-       <boolProp name="stopThread">false</boolProp>
-       <stringProp name="shareMode">shareMode.all</stringProp>
-     </CSVDataSet>
-    <hashTree/>
+    <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="线程组-登录" enabled="true">
+      <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+      <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
+        <boolProp name="LoopController.continue_forever">false</boolProp>
+        <stringProp name="LoopController.loops">1</stringProp>
+      </elementProp>
+      <stringProp name="ThreadGroup.num_threads">1</stringProp>
+      <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      <longProp name="ThreadGroup.start_time">1450158187000</longProp>
+      <longProp name="ThreadGroup.end_time">1450158187000</longProp>
+      <boolProp name="ThreadGroup.scheduler">true</boolProp>
+      <stringProp name="ThreadGroup.duration">60</stringProp>
+      <stringProp name="ThreadGroup.delay"></stringProp>
+    </ThreadGroup>
+    <hashTree>
+</hashTree>
      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="线程组" enabled="true">
       <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
       <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
         <boolProp name="LoopController.continue_forever">false</boolProp>
-        <stringProp name="LoopController.loops">-1</stringProp>
+        <stringProp name="LoopController.loops">1</stringProp>
       </elementProp>
       <stringProp name="ThreadGroup.num_threads">10</stringProp>
       <stringProp name="ThreadGroup.ramp_time">1</stringProp>
@@ -45,7 +49,7 @@
           <collectionProp name="Arguments.arguments">
             <elementProp name="" elementType="HTTPArgument">
               <boolProp name="HTTPArgument.always_encode">false</boolProp>
-              <stringProp name="Argument.value">{'id': '1123456789011', 'username': '210992535936'}</stringProp>
+              <stringProp name="Argument.value">{'id': '1123456789011', 'username': '212980838893'}</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
           </collectionProp>
@@ -181,9 +185,9 @@
        </objProp>
       <stringProp name="filename"></stringProp>
     </ResultCollector>
-   <hashTree/>
+     <hashTree/>
+    </hashTree>
    </hashTree>
   </hashTree>
- </hashTree>
  </hashTree>
 </jmeterTestPlan>

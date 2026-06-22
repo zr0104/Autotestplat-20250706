@@ -144,6 +144,16 @@ Auther:：Sen;  Version：Autotestplat-V3.0
                         </div>
                     </div>
 
+                    <!-- 新增：循环次数输入框 -->
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <span class="input-group-text" style="height: 33px; min-width: 120px;">循环次数</span>
+                                <input type="text" class="form-control input-sm" style="height: 33px" id="num_xh" placeholder="请输入循环次数（0表示无限循环）"  autocomplete="off" oninvalid="setCustomValidity('请输入数字');" oninput="setCustomValidity('');" onkeyup="this.value=this.value.replace(/\D/g,'')" value="1">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 执行机区域 -->
                     <div class="row" style="margin-bottom: 15px;">
                         <div class="col-md-12">

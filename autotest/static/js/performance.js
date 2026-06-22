@@ -46,7 +46,7 @@ function search_performance_interface() {
         }
     }
 
-    function generate_performance_file(ele){
+    function generate_performance_file(){
         var login_list = $(".logins");
         var id_list_login = [];
         for(var i=0;i<login_list.length;i++){
@@ -67,37 +67,29 @@ function search_performance_interface() {
         var num_xh = $('#num_xh').val();
         var num_sj = $('#num_sj').val();
         var modeEle = document.getElementsByName("mode");
-        var mode = modeEle[0].value;
+        var mode = modeEle.length > 0 ? modeEle[0].value : '单用户';
         var cookieEle = document.getElementsByName("deal_cookie");
-        var deal_cookie = cookieEle[0].value;
+        var deal_cookie = cookieEle.length > 0 ? cookieEle[0].value : '保持';
         console.log(num_bf,num_xh,num_sj,mode,deal_cookie);
 
         if(id_list_login.length == 0 && id_list_not_login.length == 0){
             alert('您未选择任何接口');
             return;
         }
-        else if(num_bf == ''){
-            alert('请输入“并发数”');
+        else if(num_bf == '' || parseInt(num_bf) <= 0){
+            alert('请输入有效的"并发线程数"（必须大于0）');
             return;
         }
         else if(num_xh == ''){
-            alert('请输入“循环次数”');
+            alert('请输入"循环次数"（0表示无限循环）');
             return;
         }
-        else if(num_sj == ''){
-            alert('请输入“持续运行时间”');
+        else if(num_sj == '' || parseInt(num_sj) <= 0){
+            alert('请输入有效的"持续时间"（必须大于0）');
             return;
         }
-        else if(mode == ''){
-            alert('请选择“登陆用户数”');
-            return;
-        }
-        else if(deal_cookie == ''){
-            alert('请选择“cookie处理方式”');
-            return;
-        }
-        else if(num_bf != ''&& num_xh != ''){
-            $('.jmeter_status').empty().append('状态：正在生成脚本');
+        else{
+            $('.jmeter_status').empty().append('状态：正在生成脚本...');
             $.ajax({
                 url: "/autotest/apiperformance/generate/",
                 data: JSON.stringify({
@@ -117,15 +109,19 @@ function search_performance_interface() {
                 success: function(result) {
                     console.log(result);
                     if(result == 'success'){
-                        $('.jmeter_status').empty().append('状态：已生成');
+                        $('.jmeter_status').empty().append('状态：已生成JMeter脚本');
+                        alert('JMeter脚本生成成功！');
                         }
                     else {
                         $('.jmeter_status').empty().append('状态：生成失败');
+                        alert('JMeter脚本生成失败，请查看后台日志');
                         return;
                     }
                 },
                 fail: function(result) {
                     debugger
+                    $('.jmeter_status').empty().append('状态：请求失败');
+                    alert('请求失败，请检查网络连接');
                 }
             });
         }

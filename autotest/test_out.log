@@ -87,3 +87,62 @@ Tidying up ...    @ 2026 Jun 20 14:54:26 CST (1781938466990)
 【INFO】：JMeter 执行返回码：0
 【SUCCESS】：HTML 报告已生成，耗时 1 秒
 【SUCCESS】：性能测试执行成功
+【INFO】：开始执行 JMeter 性能测试
+【INFO】：JMX 文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+【INFO】：日志文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/testLogFile
+【INFO】：输出目录：C:\Users\87389\PycharmProjects\Autotestplat-20250706/autotest/static/output
+【INFO】：开始执行 JMeter 性能测试
+【INFO】：JMX 文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+【INFO】：日志文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/testLogFile
+【INFO】：输出目录：C:\Users\87389\PycharmProjects\Autotestplat-20250706/autotest/static/output
+【STDOUT】：WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+Creating summariser <summary>
+Created the tree successfully using C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+Starting standalone test @ 2026 Jun 22 10:49:28 CST (1782096568588)
+Waiting for possible Shutdown/StopTestNow/HeapDump/ThreadDump message on port 4445
+summary +   2611 in 00:00:01 = 2082.1/s Avg:     0 Min:     0 Max:    21 Err:  2611 (100.00%) Active: 10 Started: 10 Finished: 0
+summary + 246248 in 00:00:30 = 8208.3/s Avg:     0 Min:     0 Max:    28 Err: 246248 (100.00%) Active: 10 Started: 10 Finished: 0
+summary = 248859 in 00:00:31 = 7962.5/s Avg:     0 Min:     0 Max:    28 Err: 248859 (100.00%)
+summary + 241221 in 00:00:29 = 8380.7/s Avg:     0 Min:     0 Max:    20 Err: 241221 (100.00%) Active: 0 Started: 10 Finished: 10
+summary = 490080 in 00:01:00 = 8162.8/s Avg:     0 Min:     0 Max:    28 Err: 490080 (100.00%)
+Tidying up ...    @ 2026 Jun 22 10:50:28 CST (1782096628784)
+... end of run
+
+【INFO】：JMeter 执行返回码：0
+【SUCCESS】：HTML 报告已生成，耗时 1 秒
+【SUCCESS】：性能测试执行成功
+【ERROR】：JMeter 执行超时 - Traceback (most recent call last):
+  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_performance.py", line 612, in startTestJmeter
+    result = subprocess.run(cmd, cwd=current_dir + "/apache-jmeter-5.6.3/bin",
+  File "C:\Program Files\Python\Python38-32\lib\subprocess.py", line 491, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "C:\Program Files\Python\Python38-32\lib\subprocess.py", line 1024, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "C:\Program Files\Python\Python38-32\lib\subprocess.py", line 1397, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['C:\\Users\\87389\\PycharmProjects\\Autotestplat-20250706/apache-jmeter-5.6.3/bin/jmeter.bat', '-n', '-t', 'C:\\Users\\87389\\PycharmProjects\\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx', '-l', 'C:\\Users\\87389\\PycharmProjects\\Autotestplat-20250706/apache-jmeter-5.6.3/bin/testLogFile', '-e', '-o', 'C:\\Users\\87389\\PycharmProjects\\Autotestplat-20250706/autotest/static/output']' timed out after 300 seconds
+
+【INFO】：开始执行 JMeter 性能测试
+【INFO】：JMX 文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+【INFO】：日志文件：C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/testLogFile
+【INFO】：输出目录：C:\Users\87389\PycharmProjects\Autotestplat-20250706/autotest/static/output
+【STDOUT】：WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+Creating summariser <summary>
+Created the tree successfully using C:\Users\87389\PycharmProjects\Autotestplat-20250706/apache-jmeter-5.6.3/bin/apitest.jmx
+Starting standalone test @ 2026 Jun 22 17:20:05 CST (1782120005609)
+Waiting for possible Shutdown/StopTestNow/HeapDump/ThreadDump message on port 4445
+summary +      1 in 00:00:00 =   15.9/s Avg:    11 Min:    11 Max:    11 Err:     1 (100.00%) Active: 1 Started: 2 Finished: 1
+summary +      9 in 00:00:01 =   10.3/s Avg:     0 Min:     0 Max:     1 Err:     9 (100.00%) Active: 0 Started: 11 Finished: 11
+summary =     10 in 00:00:01 =   10.7/s Avg:     1 Min:     0 Max:    11 Err:    10 (100.00%)
+Tidying up ...    @ 2026 Jun 22 17:20:06 CST (1782120006683)
+... end of run
+
+【INFO】：JMeter 执行返回码：0
+【SUCCESS】：HTML 报告已生成，耗时 1 秒
+【SUCCESS】：性能测试执行成功
