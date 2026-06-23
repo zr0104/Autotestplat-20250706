@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>全局常量变量库</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link href="/static/css/sidebar.css" rel="stylesheet" type="text/css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <style>
+        .main-content { margin-left: 250px; padding: 20px; }
+        .sidebar.collapsed ~ .main-content { margin-left: 60px; }
+
+        .container-fluid { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .env-selector {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .env-selector label { font-weight: bold; margin-right: 10px; }
+        .env-selector select { width: 200px; }
+
+        .toolbar {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editable-table { width: 100%; border-collapse: collapse; }
+        .editable-table th {
+            background-color: #f5f5f5;
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .editable-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .editable-table tr:hover { background-color: #f9f9f9; }
+
+        .editable-table input[type="text"],
+        .editable-table textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            border-radius: 3px;
+        }
+        .editable-table textarea { resize: vertical; min-height: 60px; }
+
+        .col-id { width: 60px; text-align: center; }
+        .col-varname { width: 180px; }
+        .col-varvalue { width: 250px; }
+        .col-category { width: 120px; }
+        .col-desc { width: 200px; }
+        .col-status { width: 80px; text-align: center; }
+        .col-action { width: 280px; text-align: center; }
+
+        .btn-icon {
+            padding: 5px 8px;
+            margin: 0 3px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+        .btn-add { color: #5cb85c; border-color: #5cb85c; }
+        .btn-add:hover { background-color: #dff0d8; }
+        .btn-delete { color: #d9534f; border-color: #d9534f; }
+        .btn-delete:hover { background-color: #f2dede; }
+        .btn-edit { color: #337ab7; border-color: #337ab7; }
+        .btn-edit:hover { background-color: #e8f4fd; }
+        .btn-save { color: #5cb85c; border-color: #5cb85c; }
+        .btn-save:hover { background-color: #dff0d8; }
+        .btn-cancel { color: #777; border-color: #777; }
+        .btn-cancel:hover { background-color: #f5f5f5; }
+        .btn-up { color: #f0ad4e; border-color: #f0ad4e; }
+        .btn-up:hover { background-color: #fcf8e3; }
+        .btn-down { color: #f0ad4e; border-color: #f0ad4e; }
+        .btn-down:hover { background-color: #fcf8e3; }
+        .btn-toggle { color: #777; border-color: #777; }
+        .btn-toggle:hover { background-color: #f5f5f5; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .status-enable { background-color: #dff0d8; color: #3c763d; }
+        .status-disable { background-color: #f2dede; color: #a94442; }
+
+        .pagination-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-size-select { width: 80px; }
+    </style>
+</head>
+<body>
+{% include "nav.html" %}
+
+<div class="main-content">
+<div class="container-fluid">
+    <h3 style="margin-bottom: 20px;">全局常量变量库</h3>
+
+    <div class="env-selector">
+        <label>当前环境：</label>
+        <select id="envSelector" onchange="switchEnv()">
+            <option value="环境1">环境1</option>
+            <option value="环境2">环境2</option>
+            <option value="环境3">环境3</option>
+        </select>
+        <button class="btn btn-xs btn-default" onclick="addNewEnv()">+ 新增环境</button>
+    </div>
+
+    <div class="toolbar">
+        <div>
+            <button class="btn btn-primary" onclick="addGlobalVarRow()">+ 新增变量</button>
+        </div>
+        <div class="pagination-container">
+            <span>每页显示：</span>
+            <select class="form-control page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                <option value="10">10条</option>
+                <option value="20">20条</option>
+                <option value="50">50条</option>
+            </select>
+            <div id="paginationInfo"></div>
+        </div>
+    </div>
+
+    <table class="editable-table">
+        <thead>
+            <tr>
+                <th class="col-id">ID</th>
+                <th class="col-varname">变量名</th>
+                <th class="col-varvalue">变量值</th>
+                <th class="col-category">分类</th>
+                <th class="col-desc">备注说明</th>
+                <th class="col-status">状态</th>
+                <th class="col-action">操作</th>
+            </tr>
+        </thead>
+        <tbody id="globalVarTableBody">
+        </tbody>
+    </table>
+
+    <div class="pagination-container" id="paginationContainer" style="display:none;">
+        <div id="paginationControls"></div>
+    </div>
+</div>
+</div>
+
+<script>
+var currentEnv = '环境1';
+var currentPage = 1;
+var pageSize = 10;
+
+$(document).ready(function(){
+    loadEnvs();
+    loadGlobalVarList(currentEnv, 1);
+});
+
+function loadEnvs(){
+    $.get('/autotest/envconfig/getenvs/', function(res){
+        if(res.envs && res.envs.length > 0){
+            var options = '';
+            res.envs.forEach(function(env){
+                options += '<option value="' + env + '">' + env + '</option>';
+            });
+            $('#envSelector').html(options);
+            $('#envSelector').val(currentEnv);
+        }
+    }).fail(function(){
+        console.log('环境列表加载失败');
+    });
+}
+
+function switchEnv(){
+    currentEnv = $('#envSelector').val();
+    currentPage = 1;
+    loadGlobalVarList(currentEnv, 1);
+}
+
+function addNewEnv(){
+    var envName = prompt('请输入新环境名称：');
+    if(envName && envName.trim()){
+        $.post('/autotest/envconfig/addenv/', {env_name: envName}, function(res){
+            if(res === '200'){
+                alert('环境添加成功');
+                loadEnvs();
+                $('#envSelector').val(envName);
+                currentEnv = envName;
+                currentPage = 1;
+                loadGlobalVarList(currentEnv, 1);
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('添加环境失败，请检查后端服务');
+        });
+    }
+}
+
+function loadGlobalVarList(env, page){
+    $.post('/autotest/envconfig/globalvar/list/', {
+        env_name: env,
+        page: page,
+        page_size: pageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[8] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td class="col-varname"><input type="text" class="var-name" value="' + item[1] + '" readonly></td>' +
+                    '<td class="col-varvalue"><textarea class="var-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td class="col-category"><input type="text" class="var-category" value="' + item[3] + '" readonly></td>' +
+                    '<td class="col-desc"><textarea class="var-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-add" onclick="addGlobalVarRowAfter(this)" title="新增">+</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteGlobalVar(' + item[0] + ', \'' + item[8] + '\')" title="删除">-</button>' +
+                        '<button class="btn-icon btn-up" onclick="moveUpGlobalVar(this)" title="上移">↑</button>' +
+                        '<button class="btn-icon btn-down" onclick="moveDownGlobalVar(this)" title="下移">↓</button>' +
+                        '<button class="btn-icon btn-edit" onclick="editGlobalVar(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveGlobalVarInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditGlobalVar(this)" title="取消" style="display:none;">取</button>' +
+                        (item[5] === '启用' ?
+                            '<button class="btn-icon btn-toggle" onclick="toggleGlobalVarStatus(' + item[0] + ', \'' + item[8] + '\')" title="禁用">禁</button>' :
+                            '<button class="btn-icon btn-toggle" onclick="toggleGlobalVarStatus(' + item[0] + ', \'' + item[8] + '\')" title="启用">启</button>') +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+        $('#globalVarTableBody').html(tbody);
+
+        renderPagination(res.total || 0, res.page || 1, pageSize);
+    }).fail(function(){
+        alert('加载全局变量列表失败');
+    });
+}
+
+function renderPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+    var html = '';
+
+    if(totalPages <= 1){
+        $('#paginationContainer').hide();
+        $('#paginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#paginationContainer').show();
+    $('#paginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, currentPage + 2);
+
+    for(var i = startPage; i <= endPage; i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#paginationControls').html(html);
+}
+
+function goToPage(page){
+    currentPage = page;
+    loadGlobalVarList(currentEnv, page);
+}
+
+function changePageSize(){
+    pageSize = parseInt($('#pageSizeSelect').val());
+    currentPage = 1;
+    loadGlobalVarList(currentEnv, 1);
+}
+
+function addGlobalVarRow(){
+    var newRow = '<tr data-id="new" data-env="' + currentEnv + '">' +
+        '<td class="col-id">-</td>' +
+        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线，不能以数字开头"></td>' +
+        '<td class="col-varvalue"><textarea class="var-value" rows="1" placeholder="常量值"></textarea></td>' +
+        '<td class="col-category"><input type="text" class="var-category" value="业务常量" placeholder="如：账号密码、域名地址"></td>' +
+        '<td class="col-desc"><textarea class="var-desc" rows="1" placeholder="备注说明"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+    $('#globalVarTableBody').prepend(newRow);
+}
+
+function addGlobalVarRowAfter(btn){
+    var newRow = '<tr data-id="new" data-env="' + currentEnv + '">' +
+        '<td class="col-id">-</td>' +
+        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线，不能以数字开头"></td>' +
+        '<td class="col-varvalue"><textarea class="var-value" rows="1" placeholder="常量值"></textarea></td>' +
+        '<td class="col-category"><input type="text" class="var-category" value="业务常量" placeholder="如：账号密码、域名地址"></td>' +
+        '<td class="col-desc"><textarea class="var-desc" rows="1" placeholder="备注说明"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+    $(btn).closest('tr').after(newRow);
+}
+
+function saveNewGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var varName = row.find('.var-name').val();
+    var varValue = row.find('.var-value').val();
+    var varCategory = row.find('.var-category').val();
+    var varDesc = row.find('.var-desc').val();
+
+    if(!varName || !varName.trim()){
+        alert('变量名不能为空');
+        return;
+    }
+
+    $.post('/autotest/envconfig/globalvar/add/', {
+        var_name: varName,
+        var_value: varValue,
+        var_category: varCategory,
+        var_desc: varDesc,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            alert('添加成功');
+            loadGlobalVarList(currentEnv, currentPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('添加失败');
+    });
+}
+
+function cancelAddGlobalVar(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    row.find('.var-name, .var-value, .var-category, .var-desc').prop('readonly', false);
+    row.find('.var-value, .var-desc').css('resize', 'vertical');
+    row.find('.btn-add, .btn-delete, .btn-up, .btn-down, .btn-edit, .btn-toggle').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function cancelEditGlobalVar(btn){
+    loadGlobalVarList(currentEnv, currentPage);
+}
+
+function saveGlobalVarInline(btn){
+    var row = $(btn).closest('tr');
+    var varId = row.data('id');
+    var varName = row.find('.var-name').val();
+    var varValue = row.find('.var-value').val();
+    var varCategory = row.find('.var-category').val();
+    var varDesc = row.find('.var-desc').val();
+
+    $.post('/autotest/envconfig/globalvar/update/', {
+        var_id: varId,
+        var_name: varName,
+        var_value: varValue,
+        var_category: varCategory,
+        var_desc: varDesc,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            alert('保存成功');
+            loadGlobalVarList(currentEnv, currentPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('保存失败');
+    });
+}
+
+function moveUpGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var prevRow = row.prev();
+    if(prevRow.length > 0 && prevRow.data('id') !== 'new'){
+        row.insertBefore(prevRow);
+    }
+}
+
+function moveDownGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var nextRow = row.next();
+    if(nextRow.length > 0 && nextRow.data('id') !== 'new'){
+        row.insertAfter(nextRow);
+    }
+}
+
+function deleteGlobalVar(varId, env){
+    if(confirm('确定要删除该变量吗？')){
+        $.post('/autotest/envconfig/globalvar/delete/', {var_id: varId, env_name: env}, function(res){
+            if(res === '200'){
+                alert('删除成功');
+                loadGlobalVarList(env, currentPage);
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('删除失败');
+        });
+    }
+}
+
+function toggleGlobalVarStatus(varId, env){
+    $.post('/autotest/envconfig/globalvar/toggle/', {var_id: varId, env_name: env}, function(res){
+        if(res === '200'){
+            loadGlobalVarList(env, currentPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('操作失败');
+    });
+}
+</script>
+</body>
+</html>

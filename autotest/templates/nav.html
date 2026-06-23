@@ -165,6 +165,24 @@
         </li>
 
         <li class="sidebar-item">
+            <a href="#" class="sidebar-link" onclick="toggleSubmenu(this)" data-menu="envconfig">
+                <span class="sidebar-icon">🔧</span>
+                <span class="sidebar-text">环境配置</span>
+                <span style="margin-left: auto;">▼</span>
+            </a>
+            <ul class="sidebar-submenu">
+                <li><a href="{% url 'python_func' %}" class="sidebar-link" data-menu="pythonfunc">
+                    <span class="sidebar-icon"></span>
+                    <span class="sidebar-text">Python自定义方法库</span>
+                </a></li>
+                <li><a href="{% url 'global_var' %}" class="sidebar-link" data-menu="globalvar">
+                    <span class="sidebar-icon">📦</span>
+                    <span class="sidebar-text">全局常量变量库</span>
+                </a></li>
+            </ul>
+        </li>
+
+        <li class="sidebar-item">
             <a href="{% url 'user' %}" class="sidebar-link" data-menu="user">
                 <span class="sidebar-icon">👥</span>
                 <span class="sidebar-text">用户管理</span>

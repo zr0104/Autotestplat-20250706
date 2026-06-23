@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>环境配置</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link href="/static/css/sidebar.css" rel="stylesheet" type="text/css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <style>
+        .main-content { margin-left: 250px; padding: 20px; }
+        .sidebar.collapsed ~ .main-content { margin-left: 60px; }
+
+        .env-config-container { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .sub-nav { margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .sub-nav > li.active > a {
+            border-top: 3px solid #337ab7;
+            font-weight: bold;
+            color: #337ab7;
+            background-color: #f7f7f7;
+        }
+
+        .env-selector { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .env-selector label { font-weight: bold; margin-right: 10px; }
+        .env-selector select { width: 200px; }
+
+        .editable-table { width: 100%; border-collapse: collapse; }
+        .editable-table th {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: bold;
+        }
+        .editable-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .editable-table tr:hover { background-color: #f9f9f9; }
+
+        .editable-table input[type="text"],
+        .editable-table textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            border-radius: 3px;
+        }
+        .editable-table textarea { resize: vertical; min-height: 60px; }
+
+        .col-id { width: 60px; text-align: center; }
+        .col-varname { width: 180px; }
+        .col-varvalue { width: 250px; }
+        .col-category { width: 120px; }
+        .col-desc { width: 200px; }
+        .col-status { width: 80px; text-align: center; }
+        .col-action { width: 280px; text-align: center; }
+
+        .btn-icon {
+            padding: 5px 8px;
+            margin: 0 3px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+        .btn-save { color: #5cb85c; border-color: #5cb85c; }
+        .btn-save:hover { background-color: #dff0d8; }
+        .btn-delete { color: #d9534f; border-color: #d9534f; }
+        .btn-delete:hover { background-color: #f2dede; }
+        .btn-cancel { color: #777; border-color: #777; }
+        .btn-cancel:hover { background-color: #f5f5f5; }
+        .btn-edit { color: #337ab7; border-color: #337ab7; }
+        .btn-edit:hover { background-color: #e8f4fd; }
+        .btn-add { color: #5cb85c; border-color: #5cb85c; }
+        .btn-add:hover { background-color: #dff0d8; }
+        .btn-up { color: #f0ad4e; border-color: #f0ad4e; }
+        .btn-up:hover { background-color: #fcf8e3; }
+        .btn-down { color: #f0ad4e; border-color: #f0ad4e; }
+        .btn-down:hover { background-color: #fcf8e3; }
+        .btn-debug { color: #5bc0de; border-color: #5bc0de; }
+        .btn-debug:hover { background-color: #d9edf7; }
+        .btn-toggle { color: #777; border-color: #777; }
+        .btn-toggle:hover { background-color: #f5f5f5; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .status-enable { background-color: #dff0d8; color: #3c763d; }
+        .status-disable { background-color: #f2dede; color: #a94442; }
+
+        .pagination { margin-top: 20px; text-align: right; }
+        .pagination button { margin: 0 5px; }
+
+        .code-editor { font-family: 'Courier New', monospace; font-size: 12px; }
+        .debug-result { background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; min-height: 50px; margin-top: 10px; }
+
+        .action-group { display: inline-flex; gap: 3px; }
+    </style>
+</head>
+<body>
+{% include "nav.html" %}
+
+<div class="main-content">
+<div class="env-config-container">
+    <h3 style="margin-bottom: 20px;">环境配置</h3>
+
+    <ul class="nav nav-tabs sub-nav" id="subNav">
+        <li class="active"><a data-toggle="tab" href="#pythonFuncTab">Python自定义方法库</a></li>
+        <li><a data-toggle="tab" href="#globalVarTab">全局常量变量库</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="pythonFuncTab" class="tab-pane fade in active">
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th class="col-varname">方法名</th>
+                        <th class="col-varvalue">方法描述</th>
+                        <th class="col-category">返回类型</th>
+                        <th class="col-desc">入参说明</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="pythonFuncTableBody">
+                </tbody>
+            </table>
+            <div class="pagination" id="pythonFuncPagination"></div>
+        </div>
+
+        <div id="globalVarTab" class="tab-pane fade">
+            <div class="env-selector">
+                <label>当前环境：</label>
+                <select id="envSelector" onchange="switchEnv()">
+                    <option value="环境1">环境1</option>
+                    <option value="环境2">环境2</option>
+                    <option value="环境3">环境3</option>
+                </select>
+                <button class="btn btn-xs btn-default" onclick="addNewEnv()">+ 新增环境</button>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th class="col-varname">变量名</th>
+                        <th class="col-varvalue">变量值</th>
+                        <th class="col-category">分类</th>
+                        <th class="col-desc">备注说明</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="globalVarTableBody">
+                </tbody>
+            </table>
+            <div class="pagination" id="globalVarPagination"></div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+var currentEnv = '环境1';
+var globalVarPage = 1;
+var globalVarPageSize = 15;
+
+$(document).ready(function(){
+    loadPythonFuncList();
+    loadEnvs();
+    loadGlobalVarList(currentEnv, 1);
+});
+
+function loadEnvs(){
+    $.get('/autotest/envconfig/getenvs/', function(res){
+        if(res.envs && res.envs.length > 0){
+            var options = '';
+            res.envs.forEach(function(env){
+                options += '<option value="' + env + '">' + env + '</option>';
+            });
+            $('#envSelector').html(options);
+            $('#envSelector').val(currentEnv);
+        }
+    }).fail(function(){
+        console.log('环境列表加载失败');
+    });
+}
+
+function switchEnv(){
+    currentEnv = $('#envSelector').val();
+    globalVarPage = 1;
+    loadGlobalVarList(currentEnv, 1);
+}
+
+function addNewEnv(){
+    var envName = prompt('请输入新环境名称：');
+    if(envName && envName.trim()){
+        $.post('/autotest/envconfig/addenv/', {env_name: envName}, function(res){
+            if(res === '200'){
+                alert('环境添加成功');
+                loadEnvs();
+                $('#envSelector').val(envName);
+                currentEnv = envName;
+                globalVarPage = 1;
+                loadGlobalVarList(currentEnv, 1);
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('添加环境失败，请检查后端服务');
+        });
+    }
+}
+
+function loadPythonFuncList(){
+    $.get('/autotest/envconfig/pythonfunc/list/', function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td class="col-varname"><input type="text" class="func-name" value="' + item[1] + '" readonly></td>' +
+                    '<td class="col-varvalue"><textarea class="func-desc" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td class="col-category"><select class="return-type" disabled>' +
+                        '<option value="字符串"' + (item[3] === '字符串' ? ' selected' : '') + '>字符串</option>' +
+                        '<option value="整数"' + (item[3] === '整数' ? ' selected' : '') + '>整数</option>' +
+                        '<option value="布尔值"' + (item[3] === '布尔值' ? ' selected' : '') + '>布尔值</option>' +
+                        '<option value="字典"' + (item[3] === '字典' ? ' selected' : '') + '>字典</option>' +
+                        '<option value="列表"' + (item[3] === '列表' ? ' selected' : '') + '>列表</option>' +
+                    '</select></td>' +
+                    '<td class="col-desc"><textarea class="param-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<div class="action-group">' +
+                            '<button class="btn-icon btn-add" onclick="addPythonFuncRow()" title="新增">+</button>' +
+                            '<button class="btn-icon btn-edit" onclick="editPythonFunc(this)" title="编辑">编</button>' +
+                            '<button class="btn-icon btn-save" onclick="savePythonFuncInline(this)" title="保存" style="display:none;">保</button>' +
+                            '<button class="btn-icon btn-cancel" onclick="cancelEditPythonFunc(this)" title="取消" style="display:none;">取</button>' +
+                            '<button class="btn-icon btn-delete" onclick="deletePythonFunc(' + item[0] + ')" title="删除">删</button>' +
+                            '<button class="btn-icon btn-debug" onclick="debugPythonFunc(' + item[0] + ', \'' + item[1] + '\')" title="调试">调</button>' +
+                            (item[5] === '启用' ?
+                                '<button class="btn-icon btn-toggle" onclick="togglePythonFuncStatus(' + item[0] + ')" title="禁用">禁</button>' :
+                                '<button class="btn-icon btn-toggle" onclick="togglePythonFuncStatus(' + item[0] + ')" title="启用">启</button>') +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+        $('#pythonFuncTableBody').html(tbody);
+    }).fail(function(){
+        alert('加载Python方法列表失败');
+    });
+}
+
+function loadGlobalVarList(env, page){
+    $.post('/autotest/envconfig/globalvar/list/', {
+        env_name: env,
+        page: page,
+        page_size: globalVarPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[8] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td class="col-varname"><input type="text" class="var-name" value="' + item[1] + '" readonly></td>' +
+                    '<td class="col-varvalue"><textarea class="var-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td class="col-category"><input type="text" class="var-category" value="' + item[3] + '" readonly></td>' +
+                    '<td class="col-desc"><textarea class="var-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<div class="action-group">' +
+                            '<button class="btn-icon btn-up" onclick="moveUpGlobalVar(this)" title="上移">↑</button>' +
+                            '<button class="btn-icon btn-down" onclick="moveDownGlobalVar(this)" title="下移">↓</button>' +
+                            '<button class="btn-icon btn-edit" onclick="editGlobalVar(this)" title="编辑">编</button>' +
+                            '<button class="btn-icon btn-save" onclick="saveGlobalVarInline(this)" title="保存" style="display:none;">保</button>' +
+                            '<button class="btn-icon btn-cancel" onclick="cancelEditGlobalVar(this)" title="取消" style="display:none;">取</button>' +
+                            '<button class="btn-icon btn-add" onclick="addGlobalVarRowAfter(this)" title="新增">+</button>' +
+                            '<button class="btn-icon btn-delete" onclick="deleteGlobalVar(' + item[0] + ', \'' + item[8] + '\')" title="删除">删</button>' +
+                            (item[5] === '启用' ?
+                                '<button class="btn-icon btn-toggle" onclick="toggleGlobalVarStatus(' + item[0] + ', \'' + item[8] + '\')" title="禁用">禁</button>' :
+                                '<button class="btn-icon btn-toggle" onclick="toggleGlobalVarStatus(' + item[0] + ', \'' + item[8] + '\')" title="启用">启</button>') +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+        $('#globalVarTableBody').html(tbody);
+
+        renderPagination('globalVarPagination', res.total || 0, res.page || 1, globalVarPageSize, function(p){
+            loadGlobalVarList(currentEnv, p);
+        });
+    }).fail(function(){
+        alert('加载全局变量列表失败');
+    });
+}
+
+function renderPagination(containerId, total, currentPage, pageSize, callback){
+    var totalPages = Math.ceil(total / pageSize);
+    var html = '';
+
+    if(totalPages <= 1){
+        $('#' + containerId).html('');
+        return;
+    }
+
+    html += '<span>总共 ' + total + ' 条 | </span>';
+
+    if(currentPage > 1){
+        html += '<button class="btn btn-xs btn-default" onclick="goToPage(\'' + containerId + '\', ' + (currentPage - 1) + ')">上一页</button> ';
+    }
+
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, currentPage + 2);
+
+    for(var i = startPage; i <= endPage; i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToPage(\'' + containerId + '\', ' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    if(currentPage < totalPages){
+        html += '<button class="btn btn-xs btn-default" onclick="goToPage(\'' + containerId + '\', ' + (currentPage + 1) + ')">下一页</button>';
+    }
+
+    html += ' | 共 ' + totalPages + ' 页';
+
+    $('#' + containerId).html(html);
+}
+
+function goToPage(containerId, page){
+    if(containerId === 'globalVarPagination'){
+        globalVarPage = page;
+        loadGlobalVarList(currentEnv, page);
+    }
+}
+
+function addPythonFuncRow(){
+    var newRow = '<tr data-id="new">' +
+        '<td class="col-id">-</td>' +
+        '<td class="col-varname"><input type="text" class="func-name" placeholder="仅允许字母、数字、下划线"></td>' +
+        '<td class="col-varvalue"><textarea class="func-desc" rows="1" placeholder="方法描述"></textarea></td>' +
+        '<td class="col-category"><select class="return-type">' +
+            '<option value="字符串">字符串</option>' +
+            '<option value="整数">整数</option>' +
+            '<option value="布尔值">布尔值</option>' +
+            '<option value="字典">字典</option>' +
+            '<option value="列表">列表</option>' +
+        '</select></td>' +
+        '<td class="col-desc"><textarea class="param-desc" rows="1" placeholder="入参说明"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<div class="action-group">' +
+                '<button class="btn-icon btn-save" onclick="saveNewPythonFunc(this)" title="保存">保</button>' +
+                '<button class="btn-icon btn-cancel" onclick="cancelAddPythonFunc(this)" title="取消">取</button>' +
+            '</div>' +
+        '</td>' +
+    '</tr>';
+    $('#pythonFuncTableBody').prepend(newRow);
+}
+
+function saveNewPythonFunc(btn){
+    var row = $(btn).closest('tr');
+    var funcName = row.find('.func-name').val();
+    var funcDesc = row.find('.func-desc').val();
+    var returnType = row.find('.return-type').val();
+    var paramDesc = row.find('.param-desc').val();
+
+    if(!funcName || !funcName.trim()){
+        alert('方法名不能为空');
+        return;
+    }
+
+    $.post('/autotest/envconfig/pythonfunc/add/', {
+        func_name: funcName,
+        func_desc: funcDesc,
+        return_type: returnType,
+        param_desc: paramDesc,
+        func_code: 'def ' + funcName + '():\n    pass'
+    }, function(res){
+        if(res === '200'){
+            alert('添加成功');
+            loadPythonFuncList();
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('添加失败');
+    });
+}
+
+function cancelAddPythonFunc(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editPythonFunc(btn){
+    var row = $(btn).closest('tr');
+    row.find('.func-name, .func-desc, .return-type, .param-desc').prop('readonly', false).prop('disabled', false);
+    row.find('.func-desc, .param-desc').css('resize', 'vertical');
+    row.find('.btn-add, .btn-edit, .btn-delete, .btn-debug, .btn-toggle').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function cancelEditPythonFunc(btn){
+    loadPythonFuncList();
+}
+
+function savePythonFuncInline(btn){
+    var row = $(btn).closest('tr');
+    var funcId = row.data('id');
+    var funcName = row.find('.func-name').val();
+    var funcDesc = row.find('.func-desc').val();
+    var returnType = row.find('.return-type').val();
+    var paramDesc = row.find('.param-desc').val();
+
+    $.post('/autotest/envconfig/pythonfunc/update/', {
+        func_id: funcId,
+        func_name: funcName,
+        func_desc: funcDesc,
+        return_type: returnType,
+        param_desc: paramDesc
+    }, function(res){
+        if(res === '200'){
+            alert('保存成功');
+            loadPythonFuncList();
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('保存失败');
+    });
+}
+
+function deletePythonFunc(funcId){
+    if(confirm('确定要删除该方法吗？')){
+        $.post('/autotest/envconfig/pythonfunc/delete/', {func_id: funcId}, function(res){
+            if(res === '200'){
+                alert('删除成功');
+                loadPythonFuncList();
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('删除失败');
+        });
+    }
+}
+
+function togglePythonFuncStatus(funcId){
+    $.post('/autotest/envconfig/pythonfunc/toggle/', {func_id: funcId}, function(res){
+        if(res === '200'){
+            loadPythonFuncList();
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('操作失败');
+    });
+}
+
+function debugPythonFunc(funcId, funcName){
+    $.post('/autotest/envconfig/pythonfunc/detail/', {func_id: funcId}, function(data){
+        var modalHtml = '<div class="modal fade" id="debugModal" tabindex="-1" role="dialog">' +
+            '<div class="modal-dialog" role="document">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
+                        '<h4 class="modal-title">调试方法: ' + funcName + '</h4>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="form-group">' +
+                            '<label>函数代码</label>' +
+                            '<textarea class="form-control code-editor" id="funcCodeDisplay" rows="8" readonly>' + data.func_code + '</textarea>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>测试参数（JSON格式）</label>' +
+                            '<textarea class="form-control" id="testParams" rows="3" placeholder=\'{"param1": "value1", "param2": "value2"}\'></textarea>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label>运行结果</label>' +
+                            '<div class="debug-result" id="debugResult"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>' +
+                        '<button type="button" class="btn btn-primary" onclick="runDebug(\'' + funcId + '\')">运行调试</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+        $('body').append(modalHtml);
+        $('#debugModal').modal('show');
+
+        $('#debugModal').data('funcCode', data.func_code);
+
+        $('#debugModal').on('hidden.bs.modal', function(){
+            $(this).remove();
+        });
+    }).fail(function(){
+        alert('获取方法详情失败');
+    });
+}
+
+function runDebug(funcId){
+    var funcCode = $('#debugModal').data('funcCode');
+    var testParams = $('#testParams').val() || '{}';
+
+    $.post('/autotest/envconfig/pythonfunc/debug/', {
+        func_code: funcCode,
+        test_params: testParams
+    }, function(res){
+        var resultHtml = '';
+        if(res.success){
+            resultHtml = '<p><strong>函数名:</strong> ' + res.function_name + '</p>' +
+                '<p><strong>返回值:</strong> ' + res.result + '</p>' +
+                '<p><strong>控制台输出:</strong></p>' +
+                '<pre>' + (res.console_output || '无输出') + '</pre>';
+        } else {
+            resultHtml = '<p style="color: red;"><strong>错误:</strong> ' + res.error + '</p>' +
+                '<pre style="color: red;">' + (res.traceback || '') + '</pre>';
+        }
+        $('#debugResult').html(resultHtml);
+    }).fail(function(){
+        alert('调试失败');
+    });
+}
+
+function addGlobalVarRowAfter(btn){
+    var newRow = '<tr data-id="new" data-env="' + currentEnv + '">' +
+        '<td class="col-id">-</td>' +
+        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线，不能以数字开头"></td>' +
+        '<td class="col-varvalue"><textarea class="var-value" rows="1" placeholder="常量值"></textarea></td>' +
+        '<td class="col-category"><input type="text" class="var-category" value="业务常量" placeholder="如：账号密码、域名地址"></td>' +
+        '<td class="col-desc"><textarea class="var-desc" rows="1" placeholder="备注说明"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<div class="action-group">' +
+                '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)" title="保存">保</button>' +
+                '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)" title="取消">取</button>' +
+            '</div>' +
+        '</td>' +
+    '</tr>';
+    $(btn).closest('tr').after(newRow);
+}
+
+function saveNewGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var varName = row.find('.var-name').val();
+    var varValue = row.find('.var-value').val();
+    var varCategory = row.find('.var-category').val();
+    var varDesc = row.find('.var-desc').val();
+
+    if(!varName || !varName.trim()){
+        alert('变量名不能为空');
+        return;
+    }
+
+    $.post('/autotest/envconfig/globalvar/add/', {
+        var_name: varName,
+        var_value: varValue,
+        var_category: varCategory,
+        var_desc: varDesc,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            alert('添加成功');
+            loadGlobalVarList(currentEnv, globalVarPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('添加失败');
+    });
+}
+
+function cancelAddGlobalVar(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    row.find('.var-name, .var-value, .var-category, .var-desc').prop('readonly', false);
+    row.find('.var-value, .var-desc').css('resize', 'vertical');
+    row.find('.btn-up, .btn-down, .btn-edit, .btn-add, .btn-delete, .btn-toggle').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function cancelEditGlobalVar(btn){
+    loadGlobalVarList(currentEnv, globalVarPage);
+}
+
+function saveGlobalVarInline(btn){
+    var row = $(btn).closest('tr');
+    var varId = row.data('id');
+    var varName = row.find('.var-name').val();
+    var varValue = row.find('.var-value').val();
+    var varCategory = row.find('.var-category').val();
+    var varDesc = row.find('.var-desc').val();
+
+    $.post('/autotest/envconfig/globalvar/update/', {
+        var_id: varId,
+        var_name: varName,
+        var_value: varValue,
+        var_category: varCategory,
+        var_desc: varDesc,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            alert('保存成功');
+            loadGlobalVarList(currentEnv, globalVarPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('保存失败');
+    });
+}
+
+function moveUpGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var prevRow = row.prev();
+    if(prevRow.length > 0 && prevRow.data('id') !== 'new'){
+        row.insertBefore(prevRow);
+    }
+}
+
+function moveDownGlobalVar(btn){
+    var row = $(btn).closest('tr');
+    var nextRow = row.next();
+    if(nextRow.length > 0 && nextRow.data('id') !== 'new'){
+        row.insertAfter(nextRow);
+    }
+}
+
+function deleteGlobalVar(varId, env){
+    if(confirm('确定要删除该变量吗？')){
+        $.post('/autotest/envconfig/globalvar/delete/', {var_id: varId, env_name: env}, function(res){
+            if(res === '200'){
+                alert('删除成功');
+                loadGlobalVarList(env, globalVarPage);
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('删除失败');
+        });
+    }
+}
+
+function toggleGlobalVarStatus(varId, env){
+    $.post('/autotest/envconfig/globalvar/toggle/', {var_id: varId, env_name: env}, function(res){
+        if(res === '200'){
+            loadGlobalVarList(env, globalVarPage);
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('操作失败');
+    });
+}
+</script>
+</body>
+</html>

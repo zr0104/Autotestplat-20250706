@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Python自定义方法库</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link href="/static/css/sidebar.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <style>
+        .main-content { margin-left: 250px; padding: 20px; }
+        .sidebar.collapsed ~ .main-content { margin-left: 60px; }
+
+        .container-fluid { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .toolbar { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .toolbar button { min-width: 100px; }
+
+        .method-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .method-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .method-item:hover { background-color: #f5f5f5; }
+        .method-item.active { background-color: #e3f2fd; border-left: 3px solid #2196f3; }
+        .method-item:last-child { border-bottom: none; }
+
+        .method-name { font-weight: bold; color: #333; }
+        .method-desc { color: #666; font-size: 12px; margin-top: 5px; }
+
+        .code-editor-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .CodeMirror {
+            height: 400px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .form-group label { font-weight: bold; }
+
+        .debug-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .debug-result {
+            background: white;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            min-height: 80px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .btn-group-custom { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+{% include "nav.html" %}
+
+<div class="main-content">
+<div class="container-fluid">
+    <h3 style="margin-bottom: 20px;">Python自定义方法库</h3>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>方法列表</strong>
+                    <button class="btn btn-xs btn-primary pull-right" onclick="addNewMethod()">+ 新增方法</button>
+                </div>
+                <div class="panel-body" style="padding: 0;">
+                    <div class="method-list" id="methodList">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>代码编辑器</strong>
+                    <div class="btn-group-custom pull-right">
+                        <button class="btn btn-xs btn-success" onclick="saveMethod()"> 保存</button>
+                        <button class="btn btn-xs btn-danger" onclick="deleteCurrentMethod()">🗑️ 删除</button>
+                        <button class="btn btn-xs btn-info" onclick="debugMethod()"> 调试</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>方法名：</label>
+                        <input type="text" class="form-control" id="methodName" placeholder="仅允许字母、数字、下划线，不能以数字开头">
+                    </div>
+
+                    <div class="form-group">
+                        <label>返回类型：</label>
+                        <select class="form-control" id="returnType">
+                            <option value="字符串">字符串</option>
+                            <option value="整数">整数</option>
+                            <option value="布尔值">布尔值</option>
+                            <option value="字典">字典</option>
+                            <option value="列表">列表</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>方法描述：</label>
+                        <textarea class="form-control" id="methodDesc" rows="2" placeholder="简要描述该方法的功能"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>入参说明：</label>
+                        <textarea class="form-control" id="paramDesc" rows="2" placeholder="描述方法的参数"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>代码：</label>
+                        <div class="code-editor-container">
+                            <textarea id="codeEditor"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="debug-panel" id="debugPanel" style="display:none;">
+                        <h5>调试面板</h5>
+                        <div class="form-group">
+                            <label>测试参数（JSON格式）：</label>
+                            <textarea class="form-control" id="testParams" rows="3" placeholder='{"param1": "value1", "param2": "value2"}'></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="runDebug()">运行调试</button>
+                        <div class="debug-result" id="debugResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+var editor;
+var currentMethodId = null;
+
+$(document).ready(function(){
+    editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+        mode: "python",
+        theme: "monokai",
+        lineNumbers: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        extraKeys: {"Ctrl-Space": "autocomplete"}
+    });
+
+    loadMethodList();
+});
+
+function loadMethodList(){
+    $.get('/autotest/envconfig/pythonfunc/list/', function(res){
+        var html = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                html += '<div class="method-item" data-id="' + item[0] + '" onclick="selectMethod(' + item[0] + ')">' +
+                    '<div class="method-name">' + item[1] + '</div>' +
+                    '<div class="method-desc">' + (item[2] || '暂无描述') + '</div>' +
+                '</div>';
+            });
+        }
+        $('#methodList').html(html);
+    }).fail(function(){
+        alert('加载方法列表失败');
+    });
+}
+
+function selectMethod(funcId){
+    currentMethodId = funcId;
+
+    $('.method-item').removeClass('active');
+    $('.method-item[data-id="' + funcId + '"]').addClass('active');
+
+    $.post('/autotest/envconfig/pythonfunc/detail/', {func_id: funcId}, function(data){
+        $('#methodName').val(data.func_name);
+        $('#returnType').val(data.return_type);
+        $('#methodDesc').val(data.func_desc || '');
+        $('#paramDesc').val(data.param_desc || '');
+        editor.setValue(data.func_code || '');
+
+        $('#debugPanel').hide();
+        $('#debugResult').html('');
+    }).fail(function(){
+        alert('获取方法详情失败');
+    });
+}
+
+function addNewMethod(){
+    currentMethodId = null;
+    $('.method-item').removeClass('active');
+
+    $('#methodName').val('');
+    $('#returnType').val('字符串');
+    $('#methodDesc').val('');
+    $('#paramDesc').val('');
+    editor.setValue('def new_method():\n    pass');
+
+    $('#debugPanel').hide();
+}
+
+function saveMethod(){
+    var funcName = $('#methodName').val();
+    var returnType = $('#returnType').val();
+    var funcDesc = $('#methodDesc').val();
+    var paramDesc = $('#paramDesc').val();
+    var funcCode = editor.getValue();
+
+    if(!funcName || !funcName.trim()){
+        alert('方法名不能为空');
+        return;
+    }
+
+    var url = currentMethodId ? '/autotest/envconfig/pythonfunc/update/' : '/autotest/envconfig/pythonfunc/add/';
+    var postData = {
+        func_name: funcName,
+        return_type: returnType,
+        func_desc: funcDesc,
+        param_desc: paramDesc,
+        func_code: funcCode
+    };
+
+    if(currentMethodId){
+        postData.func_id = currentMethodId;
+    }
+
+    $.post(url, postData, function(res){
+        if(res === '200'){
+            alert('保存成功');
+            loadMethodList();
+            if(!currentMethodId){
+                setTimeout(function(){
+                    var firstItem = $('.method-item:first');
+                    if(firstItem.length > 0){
+                        firstItem.click();
+                    }
+                }, 500);
+            }
+        } else {
+            alert(res);
+        }
+    }).fail(function(){
+        alert('保存失败');
+    });
+}
+
+function deleteCurrentMethod(){
+    if(!currentMethodId){
+        alert('请先选择一个方法');
+        return;
+    }
+
+    if(confirm('确定要删除该方法吗？')){
+        $.post('/autotest/envconfig/pythonfunc/delete/', {func_id: currentMethodId}, function(res){
+            if(res === '200'){
+                alert('删除成功');
+                loadMethodList();
+                addNewMethod();
+            } else {
+                alert(res);
+            }
+        }).fail(function(){
+            alert('删除失败');
+        });
+    }
+}
+
+function debugMethod(){
+    if(!currentMethodId){
+        alert('请先选择一个方法');
+        return;
+    }
+
+    $('#debugPanel').show();
+    $('#debugResult').html('');
+}
+
+function runDebug(){
+    if(!currentMethodId){
+        alert('请先选择一个方法');
+        return;
+    }
+
+    var funcCode = editor.getValue();
+    var testParams = $('#testParams').val() || '{}';
+
+    $.post('/autotest/envconfig/pythonfunc/debug/', {
+        func_code: funcCode,
+        test_params: testParams
+    }, function(res){
+        var resultHtml = '';
+        if(res.success){
+            resultHtml = '<p><strong>✓ 执行成功</strong></p>' +
+                '<p><strong>函数名:</strong> ' + res.function_name + '</p>' +
+                '<p><strong>返回值:</strong> ' + JSON.stringify(res.result) + '</p>' +
+                '<hr>' +
+                '<p><strong>控制台输出:</strong></p>' +
+                '<pre>' + (res.console_output || '无输出') + '</pre>';
+        } else {
+            resultHtml = '<p style="color: red;"><strong>✗ 执行失败</strong></p>' +
+                '<p><strong>错误信息:</strong> ' + res.error + '</p>' +
+                '<hr>' +
+                '<pre style="color: red;">' + (res.traceback || '') + '</pre>';
+        }
+        $('#debugResult').html(resultHtml);
+    }).fail(function(){
+        alert('调试失败');
+    });
+}
+</script>
+</body>
+</html>

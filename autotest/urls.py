@@ -15,6 +15,7 @@ from . import views_interfacereport
 from . import views_performance
 from . import views_apptestcase
 from . import views_webtestcase
+from . import views_envconfig
 
 urlpatterns = [
     path('index/', views_index.indexView, name='index'),
@@ -162,4 +163,31 @@ urlpatterns = [
     path('quality/', views_quality.loginView, name='quality'),
 
     path('sendemail/',views_sendemail.sendReportToEmail,name='sendemail'),
+    
+    # 环境配置 - 主页面（重定向到Python方法库）
+    path('envconfig/', views_envconfig.showEnvConfig, name='envconfig'),
+    
+    # 环境配置 - Python自定义方法库
+    path('envconfig/pythonfunc/', views_envconfig.showPythonFunc, name='python_func'),
+    path('envconfig/pythonfunc/list/', views_envconfig.loadPythonFuncList),
+    path('envconfig/pythonfunc/add/', views_envconfig.addPythonFunc),
+    path('envconfig/pythonfunc/update/', views_envconfig.updatePythonFunc),
+    path('envconfig/pythonfunc/delete/', views_envconfig.deletePythonFunc),
+    path('envconfig/pythonfunc/toggle/', views_envconfig.togglePythonFuncStatus),
+    path('envconfig/pythonfunc/detail/', views_envconfig.getPythonFuncDetail),
+    path('envconfig/pythonfunc/debug/', views_envconfig.debugPythonFunc),
+    
+    # 环境配置 - 全局常量变量库
+    path('envconfig/globalvar/', views_envconfig.showGlobalVar, name='global_var'),
+    path('envconfig/globalvar/list/', views_envconfig.loadGlobalVarList),
+    path('envconfig/globalvar/add/', views_envconfig.addGlobalVar),
+    path('envconfig/globalvar/update/', views_envconfig.updateGlobalVar),
+    path('envconfig/globalvar/delete/', views_envconfig.deleteGlobalVar),
+    path('envconfig/globalvar/toggle/', views_envconfig.toggleGlobalVarStatus),
+    path('envconfig/globalvar/detail/', views_envconfig.getGlobalVarDetail),
+    path('envconfig/globalvar/import/', views_envconfig.batchImportGlobalVars),
+    path('envconfig/globalvar/export/', views_envconfig.exportGlobalVars),
+    path('envconfig/globalvar/categories/', views_envconfig.getGlobalVarCategories),
+    path('envconfig/addenv/', views_envconfig.addEnv),
+    path('envconfig/getenvs/', views_envconfig.getEnvs),
 ]

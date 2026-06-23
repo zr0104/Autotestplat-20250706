@@ -298,6 +298,11 @@ class AutotestplatInterfaceTestcase(models.Model):
     assert_keywords_is_contain = models.CharField(max_length=10,null=True)
     menu_module_id = models.CharField(max_length=30,null=True)
     create_time = models.CharField(max_length=20, null=True)
+    
+    extract_vars = models.TextField(blank=True, null=True, verbose_name='Extract提取变量(JSON格式)')
+    scene_variables = models.TextField(blank=True, null=True, verbose_name='场景用例临时变量(JSON格式)')
+    back_variables = models.TextField(blank=True, null=True, verbose_name='事务回写结构化变量(JSON格式)')
+    hooks_script = models.TextField(blank=True, null=True, verbose_name='Hooks钩子脚本')
 
     class Meta:
         managed = True
@@ -333,6 +338,11 @@ class AutotestplatTestplanInterface(models.Model):
     assert_keywords_old = models.TextField(null=True)
     assert_keywords = models.TextField(null=True)
     assert_keywords_is_contain = models.CharField(max_length=10,null=True)
+    
+    extract_vars = models.TextField(blank=True, null=True, verbose_name='Extract提取变量(JSON格式)')
+    scene_variables = models.TextField(blank=True, null=True, verbose_name='场景用例临时变量(JSON格式)')
+    back_variables = models.TextField(blank=True, null=True, verbose_name='事务回写结构化变量(JSON格式)')
+    hooks_script = models.TextField(blank=True, null=True, verbose_name='Hooks钩子脚本')
 
     class Meta:
         managed = True
@@ -427,6 +437,43 @@ class AutotestplatWebTestcase(models.Model):
     class Meta:
         managed = True
         db_table = 'autotestplat_web_testcase'
+
+class EnvPythonFunc(models.Model):
+    """环境配置 - Python自定义方法库"""
+    func_id = models.AutoField(primary_key=True)
+    func_name = models.CharField(max_length=64, unique=True, verbose_name='全局唯一方法名')
+    func_desc = models.TextField(blank=True, null=True, verbose_name='方法描述')
+    param_desc = models.TextField(blank=True, null=True, verbose_name='入参说明')
+    return_type = models.CharField(max_length=32, default='字符串', verbose_name='返回值类型')
+    func_code = models.TextField(verbose_name='完整python函数代码')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态(1:启用,0:禁用)')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+
+    class Meta:
+        managed = True
+        db_table = 'env_python_func'
+        verbose_name = 'Python自定义方法库'
+        verbose_name_plural = 'Python自定义方法库'
+
+class EnvGlobalVariables(models.Model):
+    """环境配置 - 全局常量变量库"""
+    var_id = models.AutoField(primary_key=True)
+    var_name = models.CharField(max_length=64, verbose_name='全局唯一变量名')
+    var_value = models.TextField(blank=True, null=True, verbose_name='常量值')
+    var_category = models.CharField(max_length=32, default='业务常量', verbose_name='变量分类')
+    var_desc = models.TextField(blank=True, null=True, verbose_name='备注说明')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态(1:启用,0:禁用)')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_variables'
+        verbose_name = '全局常量变量库'
+        verbose_name_plural = '全局常量变量库'
+        unique_together = (('var_name', 'env_name'),)
 
 class PaginatorTask:
     def __init__(self,obj_count=1,obj_perpage=1,pagetag_current=1,pagetag_dsp_count=1):
