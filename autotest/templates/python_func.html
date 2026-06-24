@@ -292,23 +292,18 @@ function deleteCurrentMethod(){
 }
 
 function debugMethod(){
-    if(!currentMethodId){
-        alert('请先选择一个方法');
-        return;
-    }
-
     $('#debugPanel').show();
     $('#debugResult').html('');
 }
 
 function runDebug(){
-    if(!currentMethodId){
-        alert('请先选择一个方法');
-        return;
-    }
-
     var funcCode = editor.getValue();
     var testParams = $('#testParams').val() || '{}';
+
+    if(!funcCode.trim()){
+        alert('代码内容不能为空');
+        return;
+    }
 
     $.post('/autotest/envconfig/pythonfunc/debug/', {
         func_code: funcCode,

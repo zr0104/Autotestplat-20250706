@@ -467,6 +467,7 @@ class EnvGlobalVariables(models.Model):
     create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
 
     class Meta:
         managed = True
@@ -474,6 +475,147 @@ class EnvGlobalVariables(models.Model):
         verbose_name = '全局常量变量库'
         verbose_name_plural = '全局常量变量库'
         unique_together = (('var_name', 'env_name'),)
+
+
+class EnvGlobalHeader(models.Model):
+    """环境配置 - Header配置"""
+    id = models.AutoField(primary_key=True)
+    header_name = models.CharField(max_length=100, verbose_name='Header名称')
+    header_value = models.TextField(blank=True, null=True, verbose_name='Header值')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_header'
+        verbose_name = '全局Header配置'
+        verbose_name_plural = '全局Header配置'
+        unique_together = (('header_name', 'env_name'),)
+
+
+class EnvGlobalRequest(models.Model):
+    """环境配置 - Request参数"""
+    id = models.AutoField(primary_key=True)
+    request_name = models.CharField(max_length=100, verbose_name='Request参数名')
+    request_value = models.TextField(blank=True, null=True, verbose_name='Request参数值')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_request'
+        verbose_name = '全局Request参数'
+        verbose_name_plural = '全局Request参数'
+        unique_together = (('request_name', 'env_name'),)
+
+
+class EnvGlobalExtract(models.Model):
+    """环境配置 - Extract提取规则"""
+    id = models.AutoField(primary_key=True)
+    var_name = models.CharField(max_length=100, verbose_name='提取变量名')
+    json_path = models.CharField(max_length=500, verbose_name='JsonPath表达式')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_extract'
+        verbose_name = '全局Extract提取规则'
+        verbose_name_plural = '全局Extract提取规则'
+        unique_together = (('var_name', 'env_name'),)
+
+
+class EnvGlobalValidate(models.Model):
+    """环境配置 - Validate断言"""
+    id = models.AutoField(primary_key=True)
+    validate_name = models.CharField(max_length=100, verbose_name='断言名称')
+    validate_expression = models.CharField(max_length=500, verbose_name='断言表达式')
+    expected_value = models.TextField(blank=True, null=True, verbose_name='期望值')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_validate'
+        verbose_name = '全局Validate断言'
+        verbose_name_plural = '全局Validate断言'
+
+
+class EnvGlobalVariablesTemp(models.Model):
+    """环境配置 - Variables临时变量"""
+    id = models.AutoField(primary_key=True)
+    var_name = models.CharField(max_length=100, verbose_name='临时变量名')
+    var_value = models.TextField(blank=True, null=True, verbose_name='临时变量值')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_variables_temp'
+        verbose_name = '场景Variables临时变量'
+        verbose_name_plural = '场景Variables临时变量'
+        unique_together = (('var_name', 'env_name'),)
+
+
+class EnvGlobalBackVariables(models.Model):
+    """环境配置 - backVariables结构化变量"""
+    id = models.AutoField(primary_key=True)
+    var_name = models.CharField(max_length=100, verbose_name='回写变量名')
+    json_structure = models.TextField(blank=True, null=True, verbose_name='JSON结构模板')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_backvariables'
+        verbose_name = '事务backVariables结构化变量'
+        verbose_name_plural = '事务backVariables结构化变量'
+        unique_together = (('var_name', 'env_name'),)
+
+
+class EnvGlobalHooks(models.Model):
+    """环境配置 - Hooks钩子脚本"""
+    id = models.AutoField(primary_key=True)
+    hook_name = models.CharField(max_length=100, verbose_name='钩子名称')
+    hook_type = models.CharField(max_length=50, default='pre', verbose_name='钩子类型(pre/post)')
+    hook_code = models.TextField(blank=True, null=True, verbose_name='钩子代码')
+    description = models.TextField(blank=True, null=True, verbose_name='描述')
+    is_enable = models.SmallIntegerField(default=1, verbose_name='启用状态')
+    create_user = models.CharField(max_length=64, blank=True, null=True, verbose_name='创建人')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    env_name = models.CharField(max_length=64, default='环境1', db_index=True, verbose_name='所属环境')
+    sort_order = models.IntegerField(default=0, verbose_name='排序序号')
+
+    class Meta:
+        managed = True
+        db_table = 'env_global_hooks'
+        verbose_name = 'Hooks钩子脚本'
+        verbose_name_plural = 'Hooks钩子脚本'
+        unique_together = (('hook_name', 'env_name'),)
 
 class PaginatorTask:
     def __init__(self,obj_count=1,obj_perpage=1,pagetag_current=1,pagetag_dsp_count=1):

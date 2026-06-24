@@ -188,6 +188,52 @@ urlpatterns = [
     path('envconfig/globalvar/import/', views_envconfig.batchImportGlobalVars),
     path('envconfig/globalvar/export/', views_envconfig.exportGlobalVars),
     path('envconfig/globalvar/categories/', views_envconfig.getGlobalVarCategories),
+    path('envconfig/globalvar/swaporder/', views_envconfig.swapGlobalVarOrder),
+    path('envconfig/globalvar/initsort/', views_envconfig.initializeSortOrder),
+    path('envconfig/pythonmethod/list/', views_envconfig.getPythonMethodList),
+    
+    # Header配置
+    path('envconfig/header/list/', views_envconfig.loadHeaderList),
+    path('envconfig/header/add/', views_envconfig.addHeader),
+    path('envconfig/header/update/', views_envconfig.updateHeader),
+    path('envconfig/header/delete/', views_envconfig.deleteHeader),
+    
+    # Request参数
+    path('envconfig/request/list/', views_envconfig.loadRequestList),
+    path('envconfig/request/add/', views_envconfig.addRequest),
+    path('envconfig/request/update/', views_envconfig.updateRequest),
+    path('envconfig/request/delete/', views_envconfig.deleteRequest),
+    
+    # Extract提取规则
+    path('envconfig/extract/list/', views_envconfig.loadExtractList),
+    path('envconfig/extract/add/', views_envconfig.addExtract),
+    path('envconfig/extract/update/', views_envconfig.updateExtract),
+    path('envconfig/extract/delete/', views_envconfig.deleteExtract),
+    
+    # Validate断言
+    path('envconfig/validate/list/', views_envconfig.loadValidateList),
+    path('envconfig/validate/add/', views_envconfig.addValidate),
+    path('envconfig/validate/update/', views_envconfig.updateValidate),
+    path('envconfig/validate/delete/', views_envconfig.deleteValidate),
+    
+    # Variables临时变量
+    path('envconfig/variablestemp/list/', views_envconfig.loadVariablesTempList),
+    path('envconfig/variablestemp/add/', views_envconfig.addVariablesTemp),
+    path('envconfig/variablestemp/update/', views_envconfig.updateVariablesTemp),
+    path('envconfig/variablestemp/delete/', views_envconfig.deleteVariablesTemp),
+    
+    # backVariables结构化变量
+    path('envconfig/backvariables/list/', views_envconfig.loadBackVariablesList),
+    path('envconfig/backvariables/add/', views_envconfig.addBackVariables),
+    path('envconfig/backvariables/update/', views_envconfig.updateBackVariables),
+    path('envconfig/backvariables/delete/', views_envconfig.deleteBackVariables),
+    
+    # Hooks钩子脚本
+    path('envconfig/hooks/list/', views_envconfig.loadHooksList),
+    path('envconfig/hooks/add/', views_envconfig.addHooks),
+    path('envconfig/hooks/update/', views_envconfig.updateHooks),
+    path('envconfig/hooks/delete/', views_envconfig.deleteHooks),
+    
     path('envconfig/addenv/', views_envconfig.addEnv),
     path('envconfig/getenvs/', views_envconfig.getEnvs),
 ]

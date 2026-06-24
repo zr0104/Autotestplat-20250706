@@ -65,6 +65,53 @@
         .col-status { width: 80px; text-align: center; }
         .col-action { width: 280px; text-align: center; }
 
+        .var-value-wrapper {
+            position: relative;
+        }
+        .var-value-wrapper textarea {
+            width: 100%;
+        }
+
+        .method-autocomplete {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .method-autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .method-autocomplete-item:hover {
+            background-color: #e3f2fd;
+        }
+        .method-autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .method-name {
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .method-desc {
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+        }
+        .method-type {
+            font-size: 11px;
+            color: #999;
+            float: right;
+        }
+
         .btn-icon {
             padding: 5px 8px;
             margin: 0 3px;
@@ -132,39 +179,294 @@
         <button class="btn btn-xs btn-default" onclick="addNewEnv()">+ 新增环境</button>
     </div>
 
-    <div class="toolbar">
-        <div>
-            <button class="btn btn-primary" onclick="addGlobalVarRow()">+ 新增变量</button>
-        </div>
-        <div class="pagination-container">
-            <span>每页显示：</span>
-            <select class="form-control page-size-select" id="pageSizeSelect" onchange="changePageSize()">
-                <option value="10">10条</option>
-                <option value="20">20条</option>
-                <option value="50">50条</option>
-            </select>
-            <div id="paginationInfo"></div>
-        </div>
-    </div>
+    <!-- Tab导航 -->
+    <ul class="nav nav-tabs" id="globalVarTabs" style="margin-bottom: 20px;">
+        <li class="active"><a data-toggle="tab" href="#tab-globalvars" onclick="switchTab('globalvars')">全局常量变量库</a></li>
+        <li><a data-toggle="tab" href="#tab-header" onclick="switchTab('header')">Header</a></li>
+        <li><a data-toggle="tab" href="#tab-request" onclick="switchTab('request')">Request</a></li>
+        <li><a data-toggle="tab" href="#tab-extract" onclick="switchTab('extract')">Extract</a></li>
+        <li><a data-toggle="tab" href="#tab-validate" onclick="switchTab('validate')">Validate</a></li>
+        <li><a data-toggle="tab" href="#tab-variables" onclick="switchTab('variables')">Variables</a></li>
+        <li><a data-toggle="tab" href="#tab-backvariables" onclick="switchTab('backvariables')">backVariables</a></li>
+        <li><a data-toggle="tab" href="#tab-hooks" onclick="switchTab('hooks')">Hooks</a></li>
+    </ul>
 
-    <table class="editable-table">
-        <thead>
-            <tr>
-                <th class="col-id">ID</th>
-                <th class="col-varname">变量名</th>
-                <th class="col-varvalue">变量值</th>
-                <th class="col-category">分类</th>
-                <th class="col-desc">备注说明</th>
-                <th class="col-status">状态</th>
-                <th class="col-action">操作</th>
-            </tr>
-        </thead>
-        <tbody id="globalVarTableBody">
-        </tbody>
-    </table>
+    <!-- Tab内容区域 -->
+    <div class="tab-content">
+        <!-- 全局常量变量库 Tab -->
+        <div id="tab-globalvars" class="tab-pane fade in active">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addGlobalVarRow()">+ 新增变量</button>
+                <span style="float:right;">每页显示：
+                    <select onchange="changePageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="paginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
 
-    <div class="pagination-container" id="paginationContainer" style="display:none;">
-        <div id="paginationControls"></div>
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th class="col-varname">变量名</th>
+                        <th class="col-varvalue">变量值 / Python方法</th>
+                        <th class="col-category">分类</th>
+                        <th class="col-desc">备注说明</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="globalVarTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="paginationContainer" style="display:none;">
+                <div id="paginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Header Tab -->
+        <div id="tab-header" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addHeaderRow()">+ 新增Header</button>
+                <span style="float:right;">每页显示：
+                    <select id="headerPageSize" onchange="changeHeaderPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="headerPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>Header名称</th>
+                        <th>Header值</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="headerTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="headerPaginationContainer" style="display:none;">
+                <div id="headerPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Request Tab -->
+        <div id="tab-request" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addRequestRow()">+ 新增Request参数</button>
+                <span style="float:right;">每页显示：
+                    <select id="requestPageSize" onchange="changeRequestPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="requestPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>参数名</th>
+                        <th>参数值</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="requestTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="requestPaginationContainer" style="display:none;">
+                <div id="requestPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Extract Tab -->
+        <div id="tab-extract" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addExtractRow()">+ 新增提取规则</button>
+                <span style="float:right;">每页显示：
+                    <select id="extractPageSize" onchange="changeExtractPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="extractPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>变量名</th>
+                        <th>JsonPath表达式</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="extractTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="extractPaginationContainer" style="display:none;">
+                <div id="extractPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Validate Tab -->
+        <div id="tab-validate" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addValidateRow()">+ 新增断言</button>
+                <span style="float:right;">每页显示：
+                    <select id="validatePageSize" onchange="changeValidatePageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="validatePaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>断言名称</th>
+                        <th>断言表达式</th>
+                        <th>期望值</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="validateTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="validatePaginationContainer" style="display:none;">
+                <div id="validatePaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Variables临时变量 Tab -->
+        <div id="tab-variables" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addVariablesTempRow()">+ 新增临时变量</button>
+                <span style="float:right;">每页显示：
+                    <select id="variablesTempPageSize" onchange="changeVariablesTempPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="variablesTempPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>变量名</th>
+                        <th>变量值</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="variablesTempTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="variablesTempPaginationContainer" style="display:none;">
+                <div id="variablesTempPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- backVariables结构化变量 Tab -->
+        <div id="tab-backvariables" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addBackVariablesRow()">+ 新增回写变量</button>
+                <span style="float:right;">每页显示：
+                    <select id="backVariablesPageSize" onchange="changeBackVariablesPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="backVariablesPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>变量名</th>
+                        <th>JSON结构模板</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="backVariablesTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="backVariablesPaginationContainer" style="display:none;">
+                <div id="backVariablesPaginationControls"></div>
+            </div>
+        </div>
+
+        <!-- Hooks钩子脚本 Tab -->
+        <div id="tab-hooks" class="tab-pane fade">
+            <div style="margin-bottom:15px;">
+                <button class="btn btn-primary" onclick="addHooksRow()">+ 新增钩子脚本</button>
+                <span style="float:right;">每页显示：
+                    <select id="hooksPageSize" onchange="changeHooksPageSize(this.value)">
+                        <option value="10">10条</option>
+                        <option value="20">20条</option>
+                        <option value="50">50条</option>
+                    </select>
+                    <span id="hooksPaginationInfo" style="margin-left:10px;"></span>
+                </span>
+            </div>
+
+            <table class="editable-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>钩子名称</th>
+                        <th>钩子类型</th>
+                        <th>钩子代码</th>
+                        <th>描述</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="hooksTableBody">
+                </tbody>
+            </table>
+
+            <div class="pagination-container" id="hooksPaginationContainer" style="display:none;">
+                <div id="hooksPaginationControls"></div>
+            </div>
+        </div>
     </div>
 </div>
 </div>
@@ -173,10 +475,113 @@
 var currentEnv = '环境1';
 var currentPage = 1;
 var pageSize = 10;
+var pythonMethods = [];
+var currentTab = 'globalvars'; // 当前激活的Tab
 
 $(document).ready(function(){
-    loadEnvs();
-    loadGlobalVarList(currentEnv, 1);
+    console.log('页面加载开始...');
+    try {
+        loadEnvs();
+        loadPythonMethods();
+        loadGlobalVarList(currentEnv, 1);
+        console.log('页面初始化完成');
+    } catch(e) {
+        console.error('页面初始化失败:', e);
+        alert('页面加载失败，请查看浏览器控制台错误信息');
+    }
+});
+
+function switchTab(tabName){
+    currentTab = tabName;
+    console.log('切换到Tab:', tabName);
+
+    // 根据Tab加载对应数据
+    if(tabName === 'header'){
+        loadHeaderList(currentEnv, 1);
+    } else if(tabName === 'request'){
+        loadRequestList(currentEnv, 1);
+    } else if(tabName === 'extract'){
+        loadExtractList(currentEnv, 1);
+    } else if(tabName === 'validate'){
+        loadValidateList(currentEnv, 1);
+    } else if(tabName === 'variables'){
+        loadVariablesTempList(currentEnv, 1);
+    } else if(tabName === 'backvariables'){
+        loadBackVariablesList(currentEnv, 1);
+    } else if(tabName === 'hooks'){
+        loadHooksList(currentEnv, 1);
+    }
+}
+
+function loadPythonMethods(){
+    $.get('/autotest/envconfig/pythonmethod/list/', function(res){
+        if(res && res.length > 0){
+            pythonMethods = res;
+            console.log('✓ Python方法加载成功:', pythonMethods.length, '个');
+        }
+    }).fail(function(xhr, status, error){
+        console.error(' 加载Python方法失败:', error);
+    });
+}
+
+function showMethodAutocomplete(textarea, searchText){
+    var wrapper = $(textarea).closest('.var-value-wrapper');
+    var autocomplete = wrapper.find('.method-autocomplete');
+
+    if(!autocomplete.length){
+        autocomplete = $('<div class="method-autocomplete"></div>');
+        wrapper.append(autocomplete);
+    }
+
+    if(pythonMethods.length === 0){
+        autocomplete.hide();
+        return;
+    }
+
+    var filteredMethods = pythonMethods.filter(function(method){
+        return method.func_name.toLowerCase().indexOf(searchText.toLowerCase()) !== -1;
+    });
+
+    if(filteredMethods.length === 0){
+        autocomplete.hide();
+        return;
+    }
+
+    var html = '';
+    filteredMethods.forEach(function(method){
+        html += '<div class="method-autocomplete-item" data-method="' + method.func_name + '">' +
+            '<span class="method-name">${' + method.func_name + '}</span>' +
+            '<span class="method-type">(' + method.return_type + ')</span>' +
+        '</div>';
+    });
+
+    autocomplete.html(html).show();
+
+    $('.method-autocomplete-item').off('click').on('click', function(){
+        var methodName = $(this).data('method');
+        var fullValue = '${' + methodName + '}';
+
+        var $textarea = $(this).closest('.var-value-wrapper').find('textarea.var-value');
+        var currentValue = $textarea.val();
+        var startPos = currentValue.lastIndexOf('${');
+
+        if(startPos !== -1){
+            $textarea.val(currentValue.substring(0, startPos) + fullValue);
+        }
+
+        autocomplete.hide();
+    });
+}
+
+function hideMethodAutocomplete(textarea){
+    var wrapper = $(textarea).closest('.var-value-wrapper');
+    wrapper.find('.method-autocomplete').hide();
+}
+
+$(document).on('click', function(e){
+    if(!$(e.target).closest('.var-value-wrapper').length){
+        $('.method-autocomplete').hide();
+    }
 });
 
 function loadEnvs(){
@@ -189,8 +594,6 @@ function loadEnvs(){
             $('#envSelector').html(options);
             $('#envSelector').val(currentEnv);
         }
-    }).fail(function(){
-        console.log('环境列表加载失败');
     });
 }
 
@@ -207,32 +610,36 @@ function addNewEnv(){
             if(res === '200'){
                 alert('环境添加成功');
                 loadEnvs();
-                $('#envSelector').val(envName);
-                currentEnv = envName;
-                currentPage = 1;
-                loadGlobalVarList(currentEnv, 1);
             } else {
                 alert(res);
             }
-        }).fail(function(){
-            alert('添加环境失败，请检查后端服务');
         });
     }
 }
 
 function loadGlobalVarList(env, page){
+    console.log('加载变量列表, env=', env, ', page=', page);
+
     $.post('/autotest/envconfig/globalvar/list/', {
         env_name: env,
         page: page,
         page_size: pageSize
     }, function(res){
+        console.log('收到响应:', res);
+
         var tbody = '';
         if(res.data && res.data.length > 0){
             res.data.forEach(function(item){
+                var varValue = item[2] || '';
+
                 tbody += '<tr data-id="' + item[0] + '" data-env="' + item[8] + '">' +
                     '<td class="col-id">' + item[0] + '</td>' +
                     '<td class="col-varname"><input type="text" class="var-name" value="' + item[1] + '" readonly></td>' +
-                    '<td class="col-varvalue"><textarea class="var-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td class="col-varvalue">' +
+                        '<div class="var-value-wrapper">' +
+                            '<textarea class="var-value" rows="1" readonly>' + varValue + '</textarea>' +
+                        '</div>' +
+                    '</td>' +
                     '<td class="col-category"><input type="text" class="var-category" value="' + item[3] + '" readonly></td>' +
                     '<td class="col-desc"><textarea class="var-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
                     '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
@@ -251,17 +658,23 @@ function loadGlobalVarList(env, page){
                 '</tr>';
             });
         }
-        $('#globalVarTableBody').html(tbody);
 
+        $('#globalVarTableBody').html(tbody);
         renderPagination(res.total || 0, res.page || 1, pageSize);
-    }).fail(function(){
+        console.log('列表渲染完成');
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
         alert('加载全局变量列表失败');
     });
 }
 
+function formatVarValue(value){
+    if(!value) return '-';
+    return value;
+}
+
 function renderPagination(total, currentPage, pageSize){
     var totalPages = Math.ceil(total / pageSize);
-    var html = '';
 
     if(totalPages <= 1){
         $('#paginationContainer').hide();
@@ -272,12 +685,9 @@ function renderPagination(total, currentPage, pageSize){
     $('#paginationContainer').show();
     $('#paginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
 
-    html += '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">上一页</button> ';
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">上一页</button> ';
 
-    var startPage = Math.max(1, currentPage - 2);
-    var endPage = Math.min(totalPages, currentPage + 2);
-
-    for(var i = startPage; i <= endPage; i++){
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
         if(i === currentPage){
             html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
         } else {
@@ -302,35 +712,86 @@ function changePageSize(){
 }
 
 function addGlobalVarRow(){
+    console.log('addGlobalVarRow 被调用');
+
     var newRow = '<tr data-id="new" data-env="' + currentEnv + '">' +
         '<td class="col-id">-</td>' +
-        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线，不能以数字开头"></td>' +
-        '<td class="col-varvalue"><textarea class="var-value" rows="1" placeholder="常量值"></textarea></td>' +
-        '<td class="col-category"><input type="text" class="var-category" value="业务常量" placeholder="如：账号密码、域名地址"></td>' +
+        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线"></td>' +
+        '<td class="col-varvalue">' +
+            '<div class="var-value-wrapper">' +
+                '<textarea class="var-value" rows="1" placeholder="常量值或输入${触发提示"></textarea>' +
+            '</div>' +
+        '</td>' +
+        '<td class="col-category"><input type="text" class="var-category" value="业务常量"></td>' +
         '<td class="col-desc"><textarea class="var-desc" rows="1" placeholder="备注说明"></textarea></td>' +
         '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
         '<td class="col-action">' +
-            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)" title="保存">保</button>' +
-            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)" title="取消">取</button>' +
+            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)">取</button>' +
         '</td>' +
     '</tr>';
+
     $('#globalVarTableBody').prepend(newRow);
+
+    // 使用 jQuery 获取 textarea 并绑定事件
+    var $textarea = $('#globalVarTableBody tr:first .var-value');
+    bindTextareaEvents($textarea[0]);
+
+    console.log('新增行已添加，textarea 已绑定事件');
 }
 
 function addGlobalVarRowAfter(btn){
-    var newRow = '<tr data-id="new" data-env="' + currentEnv + '">' +
+    console.log('addGlobalVarRowAfter 被调用');
+
+    var currentRow = $(btn).closest('tr');
+    var afterVarId = currentRow.data('id'); // 记住是在哪一行后面添加
+
+    var newRow = '<tr data-id="new" data-env="' + currentEnv + '" data-after-var-id="' + afterVarId + '">' +
         '<td class="col-id">-</td>' +
-        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线，不能以数字开头"></td>' +
-        '<td class="col-varvalue"><textarea class="var-value" rows="1" placeholder="常量值"></textarea></td>' +
-        '<td class="col-category"><input type="text" class="var-category" value="业务常量" placeholder="如：账号密码、域名地址"></td>' +
+        '<td class="col-varname"><input type="text" class="var-name" placeholder="仅允许字母、数字、下划线"></td>' +
+        '<td class="col-varvalue">' +
+            '<div class="var-value-wrapper">' +
+                '<textarea class="var-value" rows="1" placeholder="常量值或输入${触发提示"></textarea>' +
+            '</div>' +
+        '</td>' +
+        '<td class="col-category"><input type="text" class="var-category" value="业务常量"></td>' +
         '<td class="col-desc"><textarea class="var-desc" rows="1" placeholder="备注说明"></textarea></td>' +
         '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
         '<td class="col-action">' +
-            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)" title="保存">保</button>' +
-            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)" title="取消">取</button>' +
+            '<button class="btn-icon btn-save" onclick="saveNewGlobalVar(this)">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddGlobalVar(this)">取</button>' +
         '</td>' +
     '</tr>';
-    $(btn).closest('tr').after(newRow);
+
+    currentRow.after(newRow);
+
+    // 使用 jQuery 获取新行的 textarea
+    var $textarea = currentRow.next().find('.var-value');
+    bindTextareaEvents($textarea[0]);
+
+    console.log('在当前行(ID=' + afterVarId + ')后添加新行，data-after-var-id=' + afterVarId);
+}
+
+function bindTextareaEvents(textarea){
+    $(textarea).on('input', function(){
+        var value = $(this).val();
+        var cursorPos = this.selectionStart;
+        var beforeCursor = value.substring(0, cursorPos);
+        var lastDollarPos = beforeCursor.lastIndexOf('$');
+
+        if(lastDollarPos !== -1 && beforeCursor.substring(lastDollarPos).startsWith('${')){
+            var searchText = beforeCursor.substring(lastDollarPos + 2);
+            showMethodAutocomplete(this, searchText.trim());
+        } else {
+            hideMethodAutocomplete(this);
+        }
+    });
+
+    $(textarea).on('blur', function(){
+        setTimeout(function(){
+            hideMethodAutocomplete(textarea);
+        }, 200);
+    });
 }
 
 function saveNewGlobalVar(btn){
@@ -339,26 +800,52 @@ function saveNewGlobalVar(btn){
     var varValue = row.find('.var-value').val();
     var varCategory = row.find('.var-category').val();
     var varDesc = row.find('.var-desc').val();
+    var afterVarId = row.attr('data-after-var-id') || ''; // 获取插入位置信息
 
-    if(!varName || !varName.trim()){
-        alert('变量名不能为空');
-        return;
-    }
+    console.log('准备保存: varName=', varName, ', afterVarId=', afterVarId);
 
     $.post('/autotest/envconfig/globalvar/add/', {
         var_name: varName,
         var_value: varValue,
         var_category: varCategory,
         var_desc: varDesc,
-        env_name: currentEnv
+        env_name: currentEnv,
+        after_var_id: afterVarId  // 告诉后端在哪一行后面插入
     }, function(res){
-        if(res === '200'){
-            alert('添加成功');
-            loadGlobalVarList(currentEnv, currentPage);
+        console.log('保存响应:', res);
+
+        if(res === '200' || res.startsWith('200')){
+            var parts = res.split(':');
+            var newId = parts[1];
+
+            // 更新行的data-id
+            row.attr('data-id', newId);
+            row.removeAttr('data-after-var-id'); // 清除临时属性
+
+            // 将操作列改为正常状态
+            row.find('.col-action').html(
+                '<button class="btn-icon btn-add" onclick="addGlobalVarRowAfter(this)" title="新增">+</button>' +
+                '<button class="btn-icon btn-delete" onclick="deleteGlobalVar(' + newId + ', \'' + currentEnv + '\')" title="删除">-</button>' +
+                '<button class="btn-icon btn-up" onclick="moveUpGlobalVar(this)" title="上移">↑</button>' +
+                '<button class="btn-icon btn-down" onclick="moveDownGlobalVar(this)" title="下移">↓</button>' +
+                '<button class="btn-icon btn-edit" onclick="editGlobalVar(this)" title="编辑">编</button>' +
+                '<button class="btn-icon btn-save" onclick="saveGlobalVarInline(this)" title="保存" style="display:none;">保</button>' +
+                '<button class="btn-icon btn-cancel" onclick="cancelEditGlobalVar(this)" title="取消" style="display:none;">取</button>' +
+                '<button class="btn-icon btn-toggle" onclick="toggleGlobalVarStatus(' + newId + ', \'' + currentEnv + '\')" title="禁用">禁</button>'
+            );
+
+            // 设置所有字段为只读
+            row.find('.var-name, .var-category, .var-desc').prop('readonly', true);
+            row.find('.var-value').prop('readonly', true);
+
+            alert('添加成功！刷新页面后位置会保持不变。');
+
+            console.log('✓ 新增成功，插入在ID=' + afterVarId + '之后，新ID:', newId);
         } else {
             alert(res);
         }
-    }).fail(function(){
+    }).fail(function(xhr, status, error){
+        console.error('保存失败:', status, error);
         alert('添加失败');
     });
 }
@@ -369,8 +856,13 @@ function cancelAddGlobalVar(btn){
 
 function editGlobalVar(btn){
     var row = $(btn).closest('tr');
-    row.find('.var-name, .var-value, .var-category, .var-desc').prop('readonly', false);
+    row.find('.var-name, .var-category, .var-desc').prop('readonly', false);
+    row.find('.var-value').prop('readonly', false);
     row.find('.var-value, .var-desc').css('resize', 'vertical');
+
+    var textarea = row.find('.var-value')[0];
+    bindTextareaEvents(textarea);
+
     row.find('.btn-add, .btn-delete, .btn-up, .btn-down, .btn-edit, .btn-toggle').hide();
     row.find('.btn-save, .btn-cancel').show();
 }
@@ -401,24 +893,52 @@ function saveGlobalVarInline(btn){
         } else {
             alert(res);
         }
-    }).fail(function(){
-        alert('保存失败');
     });
 }
 
 function moveUpGlobalVar(btn){
     var row = $(btn).closest('tr');
+    var varId = row.data('id');
     var prevRow = row.prev();
+
     if(prevRow.length > 0 && prevRow.data('id') !== 'new'){
-        row.insertBefore(prevRow);
+        var prevVarId = prevRow.data('id');
+
+        $.post('/autotest/envconfig/globalvar/swaporder/', {
+            var_id_1: varId,
+            var_id_2: prevVarId,
+            env_name: currentEnv
+        }, function(res){
+            if(res === '200'){
+                row.insertBefore(prevRow);
+                alert('位置交换成功');
+            } else {
+                alert('交换失败: ' + res);
+            }
+        });
     }
 }
 
 function moveDownGlobalVar(btn){
     var row = $(btn).closest('tr');
+    var varId = row.data('id');
     var nextRow = row.next();
+
     if(nextRow.length > 0 && nextRow.data('id') !== 'new'){
-        row.insertAfter(nextRow);
+        var nextVarId = nextRow.data('id');
+
+        $.post('/autotest/envconfig/globalvar/swaporder/', {
+            var_id_1: varId,
+            var_id_2: nextVarId,
+            env_name: currentEnv
+        }, function(res){
+            if(res === '200'){
+                row.insertAfter(nextRow);
+                alert('位置交换成功');
+            } else {
+                alert('交换失败: ' + res);
+            }
+        });
     }
 }
 
@@ -426,13 +946,18 @@ function deleteGlobalVar(varId, env){
     if(confirm('确定要删除该变量吗？')){
         $.post('/autotest/envconfig/globalvar/delete/', {var_id: varId, env_name: env}, function(res){
             if(res === '200'){
-                alert('删除成功');
-                loadGlobalVarList(env, currentPage);
+                // 创建临时提示框
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+
+                // 2秒后自动关闭并刷新列表
+                setTimeout(function(){
+                    $toast.remove();
+                    loadGlobalVarList(env, currentPage);
+                }, 2000);
             } else {
                 alert(res);
             }
-        }).fail(function(){
-            alert('删除失败');
         });
     }
 }
@@ -444,10 +969,1319 @@ function toggleGlobalVarStatus(varId, env){
         } else {
             alert(res);
         }
-    }).fail(function(){
-        alert('操作失败');
     });
+}
+
+function toggleGlobalVarStatus(varId, env){
+    $.post('/autotest/envconfig/globalvar/toggle/', {var_id: varId, env_name: env}, function(res){
+        if(res === '200'){
+            loadGlobalVarList(env, currentPage);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+// ==================== Header Tab 函数 ====================
+
+var headerCurrentPage = 1;
+var headerPageSize = 10;
+
+function loadHeaderList(env, page){
+    console.log('加载Header列表, env=', env, ', page=', page);
+
+    $.post('/autotest/envconfig/header/list/', {
+        env_name: env,
+        page: page,
+        page_size: headerPageSize
+    }, function(res){
+        console.log('收到响应:', res);
+
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[7] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="header-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><textarea class="header-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td><textarea class="header-desc" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[4] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[4] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editHeader(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveHeaderInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditHeader(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteHeader(' + item[0] + ', \'' + item[7] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#headerTableBody').html(tbody);
+        renderHeaderPagination(res.total || 0, res.page || 1, headerPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Header列表失败');
+    });
+}
+
+function addHeaderRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="header-name"></td>' +
+        '<td><textarea class="header-value" rows="1"></textarea></td>' +
+        '<td><textarea class="header-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewHeader(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddHeader(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#headerTableBody').prepend(row);
+}
+
+function saveNewHeader(btn){
+    var row = $(btn).closest('tr');
+    var headerName = row.find('.header-name').val();
+    var headerValue = row.find('.header-value').val();
+    var description = row.find('.header-desc').val();
+
+    $.post('/autotest/envconfig/header/add/', {
+        header_name: headerName,
+        header_value: headerValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadHeaderList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddHeader(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editHeader(btn){
+    var row = $(btn).closest('tr');
+    row.find('.header-name, .header-value, .header-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveHeaderInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var headerName = row.find('.header-name').val();
+    var headerValue = row.find('.header-value').val();
+    var description = row.find('.header-desc').val();
+
+    $.post('/autotest/envconfig/header/update/', {
+        id: id,
+        header_name: headerName,
+        header_value: headerValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.header-name, .header-value, .header-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadHeaderList(currentEnv, headerCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditHeader(btn){
+    var row = $(btn).closest('tr');
+    row.find('.header-name, .header-value, .header-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteHeader(id, env){
+    if(confirm('确定要删除该Header吗？')){
+        $.post('/autotest/envconfig/header/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadHeaderList(env, headerCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeHeaderPageSize(size){
+    headerPageSize = parseInt(size);
+    headerCurrentPage = 1;
+    loadHeaderList(currentEnv, 1);
+}
+
+function renderHeaderPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#headerPaginationContainer').hide();
+        $('#headerPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#headerPaginationContainer').show();
+    $('#headerPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToHeaderPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToHeaderPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToHeaderPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#headerPaginationControls').html(html);
+}
+
+function goToHeaderPage(page){
+    headerCurrentPage = page;
+    loadHeaderList(currentEnv, page);
+}
+
+// ==================== Request Tab 函数 ====================
+
+var requestCurrentPage = 1;
+var requestPageSize = 10;
+
+function loadRequestList(env, page){
+    $.post('/autotest/envconfig/request/list/', {
+        env_name: env,
+        page: page,
+        page_size: requestPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[7] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="request-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><textarea class="request-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td><textarea class="request-desc" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[4] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[4] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editRequest(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveRequestInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditRequest(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteRequest(' + item[0] + ', \'' + item[7] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#requestTableBody').html(tbody);
+        renderRequestPagination(res.total || 0, res.page || 1, requestPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Request列表失败');
+    });
+}
+
+function addRequestRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="request-name"></td>' +
+        '<td><textarea class="request-value" rows="1"></textarea></td>' +
+        '<td><textarea class="request-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewRequest(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddRequest(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#requestTableBody').prepend(row);
+}
+
+function saveNewRequest(btn){
+    var row = $(btn).closest('tr');
+    var requestName = row.find('.request-name').val();
+    var requestValue = row.find('.request-value').val();
+    var description = row.find('.request-desc').val();
+
+    $.post('/autotest/envconfig/request/add/', {
+        request_name: requestName,
+        request_value: requestValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadRequestList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddRequest(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editRequest(btn){
+    var row = $(btn).closest('tr');
+    row.find('.request-name, .request-value, .request-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveRequestInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var requestName = row.find('.request-name').val();
+    var requestValue = row.find('.request-value').val();
+    var description = row.find('.request-desc').val();
+
+    $.post('/autotest/envconfig/request/update/', {
+        id: id,
+        request_name: requestName,
+        request_value: requestValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.request-name, .request-value, .request-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadRequestList(currentEnv, requestCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditRequest(btn){
+    var row = $(btn).closest('tr');
+    row.find('.request-name, .request-value, .request-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteRequest(id, env){
+    if(confirm('确定要删除该Request参数吗？')){
+        $.post('/autotest/envconfig/request/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadRequestList(env, requestCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeRequestPageSize(size){
+    requestPageSize = parseInt(size);
+    requestCurrentPage = 1;
+    loadRequestList(currentEnv, 1);
+}
+
+function renderRequestPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#requestPaginationContainer').hide();
+        $('#requestPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#requestPaginationContainer').show();
+    $('#requestPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToRequestPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToRequestPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToRequestPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#requestPaginationControls').html(html);
+}
+
+function goToRequestPage(page){
+    requestCurrentPage = page;
+    loadRequestList(currentEnv, page);
+}
+
+// ==================== Extract Tab 函数 ====================
+
+var extractCurrentPage = 1;
+var extractPageSize = 10;
+
+function loadExtractList(env, page){
+    $.post('/autotest/envconfig/extract/list/', {
+        env_name: env,
+        page: page,
+        page_size: extractPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[7] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="extract-varname" value="' + item[1] + '" readonly></td>' +
+                    '<td><input type="text" class="extract-jsonpath" value="' + item[2] + '" readonly></td>' +
+                    '<td><textarea class="extract-desc" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[4] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[4] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editExtract(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveExtractInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditExtract(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteExtract(' + item[0] + ', \'' + item[7] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#extractTableBody').html(tbody);
+        renderExtractPagination(res.total || 0, res.page || 1, extractPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Extract列表失败');
+    });
+}
+
+function addExtractRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="extract-varname"></td>' +
+        '<td><input type="text" class="extract-jsonpath"></td>' +
+        '<td><textarea class="extract-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewExtract(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddExtract(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#extractTableBody').prepend(row);
+}
+
+function saveNewExtract(btn){
+    var row = $(btn).closest('tr');
+    var varName = row.find('.extract-varname').val();
+    var jsonPath = row.find('.extract-jsonpath').val();
+    var description = row.find('.extract-desc').val();
+
+    $.post('/autotest/envconfig/extract/add/', {
+        var_name: varName,
+        json_path: jsonPath,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadExtractList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddExtract(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editExtract(btn){
+    var row = $(btn).closest('tr');
+    row.find('.extract-varname, .extract-jsonpath, .extract-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveExtractInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var varName = row.find('.extract-varname').val();
+    var jsonPath = row.find('.extract-jsonpath').val();
+    var description = row.find('.extract-desc').val();
+
+    $.post('/autotest/envconfig/extract/update/', {
+        id: id,
+        var_name: varName,
+        json_path: jsonPath,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.extract-varname, .extract-jsonpath, .extract-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadExtractList(currentEnv, extractCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditExtract(btn){
+    var row = $(btn).closest('tr');
+    row.find('.extract-varname, .extract-jsonpath, .extract-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteExtract(id, env){
+    if(confirm('确定要删除该提取规则吗？')){
+        $.post('/autotest/envconfig/extract/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadExtractList(env, extractCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeExtractPageSize(size){
+    extractPageSize = parseInt(size);
+    extractCurrentPage = 1;
+    loadExtractList(currentEnv, 1);
+}
+
+function renderExtractPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#extractPaginationContainer').hide();
+        $('#extractPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#extractPaginationContainer').show();
+    $('#extractPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToExtractPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToExtractPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToExtractPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#extractPaginationControls').html(html);
+}
+
+function goToExtractPage(page){
+    extractCurrentPage = page;
+    loadExtractList(currentEnv, page);
+}
+
+// ==================== Validate Tab 函数 ====================
+
+var validateCurrentPage = 1;
+var validatePageSize = 10;
+
+function loadValidateList(env, page){
+    $.post('/autotest/envconfig/validate/list/', {
+        env_name: env,
+        page: page,
+        page_size: validatePageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[8] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="validate-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><input type="text" class="validate-expression" value="' + item[2] + '" readonly></td>' +
+                    '<td><textarea class="validate-expected" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td><textarea class="validate-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editValidate(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveValidateInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditValidate(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteValidate(' + item[0] + ', \'' + item[8] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#validateTableBody').html(tbody);
+        renderValidatePagination(res.total || 0, res.page || 1, validatePageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Validate列表失败');
+    });
+}
+
+function addValidateRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="validate-name"></td>' +
+        '<td><input type="text" class="validate-expression"></td>' +
+        '<td><textarea class="validate-expected" rows="1"></textarea></td>' +
+        '<td><textarea class="validate-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewValidate(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddValidate(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#validateTableBody').prepend(row);
+}
+
+function saveNewValidate(btn){
+    var row = $(btn).closest('tr');
+    var validateName = row.find('.validate-name').val();
+    var validateExpression = row.find('.validate-expression').val();
+    var expectedValue = row.find('.validate-expected').val();
+    var description = row.find('.validate-desc').val();
+
+    $.post('/autotest/envconfig/validate/add/', {
+        validate_name: validateName,
+        validate_expression: validateExpression,
+        expected_value: expectedValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadValidateList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddValidate(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editValidate(btn){
+    var row = $(btn).closest('tr');
+    row.find('.validate-name, .validate-expression, .validate-expected, .validate-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveValidateInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var validateName = row.find('.validate-name').val();
+    var validateExpression = row.find('.validate-expression').val();
+    var expectedValue = row.find('.validate-expected').val();
+    var description = row.find('.validate-desc').val();
+
+    $.post('/autotest/envconfig/validate/update/', {
+        id: id,
+        validate_name: validateName,
+        validate_expression: validateExpression,
+        expected_value: expectedValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.validate-name, .validate-expression, .validate-expected, .validate-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadValidateList(currentEnv, validateCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditValidate(btn){
+    var row = $(btn).closest('tr');
+    row.find('.validate-name, .validate-expression, .validate-expected, .validate-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteValidate(id, env){
+    if(confirm('确定要删除该断言吗？')){
+        $.post('/autotest/envconfig/validate/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadValidateList(env, validateCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeValidatePageSize(size){
+    validatePageSize = parseInt(size);
+    validateCurrentPage = 1;
+    loadValidateList(currentEnv, 1);
+}
+
+function renderValidatePagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#validatePaginationContainer').hide();
+        $('#validatePaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#validatePaginationContainer').show();
+    $('#validatePaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToValidatePage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToValidatePage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToValidatePage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#validatePaginationControls').html(html);
+}
+
+function goToValidatePage(page){
+    validateCurrentPage = page;
+    loadValidateList(currentEnv, page);
+}
+
+// ==================== Variables临时变量 Tab 函数 ====================
+
+var variablesTempCurrentPage = 1;
+var variablesTempPageSize = 10;
+
+function loadVariablesTempList(env, page){
+    $.post('/autotest/envconfig/variablestemp/list/', {
+        env_name: env,
+        page: page,
+        page_size: variablesTempPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[7] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="variables-temp-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><textarea class="variables-temp-value" rows="1" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td><textarea class="variables-temp-desc" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[4] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[4] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editVariablesTemp(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveVariablesTempInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditVariablesTemp(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteVariablesTemp(' + item[0] + ', \'' + item[7] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#variablesTempTableBody').html(tbody);
+        renderVariablesTempPagination(res.total || 0, res.page || 1, variablesTempPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Variables列表失败');
+    });
+}
+
+function addVariablesTempRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="variables-temp-name"></td>' +
+        '<td><textarea class="variables-temp-value" rows="1"></textarea></td>' +
+        '<td><textarea class="variables-temp-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewVariablesTemp(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddVariablesTemp(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#variablesTempTableBody').prepend(row);
+}
+
+function saveNewVariablesTemp(btn){
+    var row = $(btn).closest('tr');
+    var varName = row.find('.variables-temp-name').val();
+    var varValue = row.find('.variables-temp-value').val();
+    var description = row.find('.variables-temp-desc').val();
+
+    $.post('/autotest/envconfig/variablestemp/add/', {
+        var_name: varName,
+        var_value: varValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadVariablesTempList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddVariablesTemp(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editVariablesTemp(btn){
+    var row = $(btn).closest('tr');
+    row.find('.variables-temp-name, .variables-temp-value, .variables-temp-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveVariablesTempInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var varName = row.find('.variables-temp-name').val();
+    var varValue = row.find('.variables-temp-value').val();
+    var description = row.find('.variables-temp-desc').val();
+
+    $.post('/autotest/envconfig/variablestemp/update/', {
+        id: id,
+        var_name: varName,
+        var_value: varValue,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.variables-temp-name, .variables-temp-value, .variables-temp-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadVariablesTempList(currentEnv, variablesTempCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditVariablesTemp(btn){
+    var row = $(btn).closest('tr');
+    row.find('.variables-temp-name, .variables-temp-value, .variables-temp-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteVariablesTemp(id, env){
+    if(confirm('确定要删除该临时变量吗？')){
+        $.post('/autotest/envconfig/variablestemp/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadVariablesTempList(env, variablesTempCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeVariablesTempPageSize(size){
+    variablesTempPageSize = parseInt(size);
+    variablesTempCurrentPage = 1;
+    loadVariablesTempList(currentEnv, 1);
+}
+
+function renderVariablesTempPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#variablesTempPaginationContainer').hide();
+        $('#variablesTempPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#variablesTempPaginationContainer').show();
+    $('#variablesTempPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToVariablesTempPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToVariablesTempPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToVariablesTempPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#variablesTempPaginationControls').html(html);
+}
+
+function goToVariablesTempPage(page){
+    variablesTempCurrentPage = page;
+    loadVariablesTempList(currentEnv, page);
+}
+
+// ==================== backVariables结构化变量 Tab 函数 ====================
+
+var backVariablesCurrentPage = 1;
+var backVariablesPageSize = 10;
+
+function loadBackVariablesList(env, page){
+    $.post('/autotest/envconfig/backvariables/list/', {
+        env_name: env,
+        page: page,
+        page_size: backVariablesPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[7] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="backvariables-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><textarea class="backvariables-json" rows="2" readonly>' + (item[2] || '') + '</textarea></td>' +
+                    '<td><textarea class="backvariables-desc" rows="1" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[4] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[4] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editBackVariables(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveBackVariablesInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditBackVariables(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteBackVariables(' + item[0] + ', \'' + item[7] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#backVariablesTableBody').html(tbody);
+        renderBackVariablesPagination(res.total || 0, res.page || 1, backVariablesPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载backVariables列表失败');
+    });
+}
+
+function addBackVariablesRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="backvariables-name"></td>' +
+        '<td><textarea class="backvariables-json" rows="2"></textarea></td>' +
+        '<td><textarea class="backvariables-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewBackVariables(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddBackVariables(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#backVariablesTableBody').prepend(row);
+}
+
+function saveNewBackVariables(btn){
+    var row = $(btn).closest('tr');
+    var varName = row.find('.backvariables-name').val();
+    var jsonStructure = row.find('.backvariables-json').val();
+    var description = row.find('.backvariables-desc').val();
+
+    $.post('/autotest/envconfig/backvariables/add/', {
+        var_name: varName,
+        json_structure: jsonStructure,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadBackVariablesList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddBackVariables(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editBackVariables(btn){
+    var row = $(btn).closest('tr');
+    row.find('.backvariables-name, .backvariables-json, .backvariables-desc').prop('readonly', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveBackVariablesInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var varName = row.find('.backvariables-name').val();
+    var jsonStructure = row.find('.backvariables-json').val();
+    var description = row.find('.backvariables-desc').val();
+
+    $.post('/autotest/envconfig/backvariables/update/', {
+        id: id,
+        var_name: varName,
+        json_structure: jsonStructure,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.backvariables-name, .backvariables-json, .backvariables-desc').prop('readonly', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadBackVariablesList(currentEnv, backVariablesCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditBackVariables(btn){
+    var row = $(btn).closest('tr');
+    row.find('.backvariables-name, .backvariables-json, .backvariables-desc').prop('readonly', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteBackVariables(id, env){
+    if(confirm('确定要删除该回写变量吗？')){
+        $.post('/autotest/envconfig/backvariables/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadBackVariablesList(env, backVariablesCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeBackVariablesPageSize(size){
+    backVariablesPageSize = parseInt(size);
+    backVariablesCurrentPage = 1;
+    loadBackVariablesList(currentEnv, 1);
+}
+
+function renderBackVariablesPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#backVariablesPaginationContainer').hide();
+        $('#backVariablesPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#backVariablesPaginationContainer').show();
+    $('#backVariablesPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToBackVariablesPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToBackVariablesPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToBackVariablesPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#backVariablesPaginationControls').html(html);
+}
+
+function goToBackVariablesPage(page){
+    backVariablesCurrentPage = page;
+    loadBackVariablesList(currentEnv, page);
+}
+
+// ==================== Hooks钩子脚本 Tab 函数 ====================
+
+var hooksCurrentPage = 1;
+var hooksPageSize = 10;
+
+function loadHooksList(env, page){
+    $.post('/autotest/envconfig/hooks/list/', {
+        env_name: env,
+        page: page,
+        page_size: hooksPageSize
+    }, function(res){
+        var tbody = '';
+        if(res.data && res.data.length > 0){
+            res.data.forEach(function(item){
+                tbody += '<tr data-id="' + item[0] + '" data-env="' + item[8] + '">' +
+                    '<td class="col-id">' + item[0] + '</td>' +
+                    '<td><input type="text" class="hooks-name" value="' + item[1] + '" readonly></td>' +
+                    '<td><select class="hooks-type" disabled><option value="pre"' + (item[2] === 'pre' ? ' selected' : '') + '>前置(pre)</option><option value="post"' + (item[2] === 'post' ? ' selected' : '') + '>后置(post)</option></select></td>' +
+                    '<td><textarea class="hooks-code" rows="3" readonly>' + (item[3] || '') + '</textarea></td>' +
+                    '<td><textarea class="hooks-desc" rows="1" readonly>' + (item[4] || '') + '</textarea></td>' +
+                    '<td class="col-status"><span class="status-badge ' + (item[5] === '启用' ? 'status-enable' : 'status-disable') + '">' + item[5] + '</span></td>' +
+                    '<td class="col-action">' +
+                        '<button class="btn-icon btn-edit" onclick="editHooks(this)" title="编辑">编</button>' +
+                        '<button class="btn-icon btn-save" onclick="saveHooksInline(this)" title="保存" style="display:none;">保</button>' +
+                        '<button class="btn-icon btn-cancel" onclick="cancelEditHooks(this)" title="取消" style="display:none;">取</button>' +
+                        '<button class="btn-icon btn-delete" onclick="deleteHooks(' + item[0] + ', \'' + item[8] + '\')" title="删除">-</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+        }
+
+        $('#hooksTableBody').html(tbody);
+        renderHooksPagination(res.total || 0, res.page || 1, hooksPageSize);
+    }).fail(function(xhr, status, error){
+        console.error('加载失败:', status, error);
+        alert('加载Hooks列表失败');
+    });
+}
+
+function addHooksRow(){
+    var row = '<tr class="new-row">' +
+        '<td class="col-id">新增</td>' +
+        '<td><input type="text" class="hooks-name"></td>' +
+        '<td><select class="hooks-type"><option value="pre">前置(pre)</option><option value="post">后置(post)</option></select></td>' +
+        '<td><textarea class="hooks-code" rows="3"></textarea></td>' +
+        '<td><textarea class="hooks-desc" rows="1"></textarea></td>' +
+        '<td class="col-status"><span class="status-badge status-enable">启用</span></td>' +
+        '<td class="col-action">' +
+            '<button class="btn-icon btn-save" onclick="saveNewHooks(this)" title="保存">保</button>' +
+            '<button class="btn-icon btn-cancel" onclick="cancelAddHooks(this)" title="取消">取</button>' +
+        '</td>' +
+    '</tr>';
+
+    $('#hooksTableBody').prepend(row);
+}
+
+function saveNewHooks(btn){
+    var row = $(btn).closest('tr');
+    var hookName = row.find('.hooks-name').val();
+    var hookType = row.find('.hooks-type').val();
+    var hookCode = row.find('.hooks-code').val();
+    var description = row.find('.hooks-desc').val();
+
+    $.post('/autotest/envconfig/hooks/add/', {
+        hook_name: hookName,
+        hook_type: hookType,
+        hook_code: hookCode,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">保存成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadHooksList(currentEnv, 1);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelAddHooks(btn){
+    $(btn).closest('tr').remove();
+}
+
+function editHooks(btn){
+    var row = $(btn).closest('tr');
+    row.find('.hooks-name, .hooks-code, .hooks-desc').prop('readonly', false);
+    row.find('.hooks-type').prop('disabled', false);
+    row.find('.btn-edit').hide();
+    row.find('.btn-save, .btn-cancel').show();
+}
+
+function saveHooksInline(btn){
+    var row = $(btn).closest('tr');
+    var id = row.attr('data-id');
+    var hookName = row.find('.hooks-name').val();
+    var hookType = row.find('.hooks-type').val();
+    var hookCode = row.find('.hooks-code').val();
+    var description = row.find('.hooks-desc').val();
+
+    $.post('/autotest/envconfig/hooks/update/', {
+        id: id,
+        hook_name: hookName,
+        hook_type: hookType,
+        hook_code: hookCode,
+        description: description,
+        env_name: currentEnv
+    }, function(res){
+        if(res === '200'){
+            row.find('.hooks-name, .hooks-code, .hooks-desc').prop('readonly', true);
+            row.find('.hooks-type').prop('disabled', true);
+            row.find('.btn-edit').show();
+            row.find('.btn-save, .btn-cancel').hide();
+
+            var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">更新成功</div>');
+            $('body').append($toast);
+            setTimeout(function(){
+                $toast.remove();
+                loadHooksList(currentEnv, hooksCurrentPage);
+            }, 2000);
+        } else {
+            alert(res);
+        }
+    });
+}
+
+function cancelEditHooks(btn){
+    var row = $(btn).closest('tr');
+    row.find('.hooks-name, .hooks-code, .hooks-desc').prop('readonly', true);
+    row.find('.hooks-type').prop('disabled', true);
+    row.find('.btn-edit').show();
+    row.find('.btn-save, .btn-cancel').hide();
+}
+
+function deleteHooks(id, env){
+    if(confirm('确定要删除该钩子脚本吗？')){
+        $.post('/autotest/envconfig/hooks/delete/', {id: id}, function(res){
+            if(res === '200'){
+                var $toast = $('<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:5px;z-index:9999;font-size:16px;">删除成功</div>');
+                $('body').append($toast);
+                setTimeout(function(){
+                    $toast.remove();
+                    loadHooksList(env, hooksCurrentPage);
+                }, 2000);
+            } else {
+                alert(res);
+            }
+        });
+    }
+}
+
+function changeHooksPageSize(size){
+    hooksPageSize = parseInt(size);
+    hooksCurrentPage = 1;
+    loadHooksList(currentEnv, 1);
+}
+
+function renderHooksPagination(total, currentPage, pageSize){
+    var totalPages = Math.ceil(total / pageSize);
+
+    if(totalPages <= 1){
+        $('#hooksPaginationContainer').hide();
+        $('#hooksPaginationInfo').html('总共 ' + total + ' 条');
+        return;
+    }
+
+    $('#hooksPaginationContainer').show();
+    $('#hooksPaginationInfo').html('总共 ' + total + ' 条 | 第 ' + currentPage + '/' + totalPages + ' 页');
+
+    var html = '<button class="btn btn-xs btn-default" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToHooksPage(' + (currentPage - 1) + ')">上一页</button> ';
+
+    for(var i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++){
+        if(i === currentPage){
+            html += '<button class="btn btn-xs btn-primary">' + i + '</button> ';
+        } else {
+            html += '<button class="btn btn-xs btn-default" onclick="goToHooksPage(' + i + ')">' + i + '</button> ';
+        }
+    }
+
+    html += '<button class="btn btn-xs btn-default" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToHooksPage(' + (currentPage + 1) + ')">下一页</button>';
+
+    $('#hooksPaginationControls').html(html);
+}
+
+function goToHooksPage(page){
+    hooksCurrentPage = page;
+    loadHooksList(currentEnv, page);
 }
 </script>
 </body>
 </html>
+
