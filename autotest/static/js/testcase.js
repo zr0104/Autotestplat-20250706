@@ -228,71 +228,114 @@ function setSelect(){
 
 function showParams(){
      var p = document.getElementById('paramsvalues').value;
-     if(p!=''&&p!='{}'){
-         const paramsData = JSON.parse(p);
-         const paramKeys = Object.keys(paramsData);
-         for (let i = 0; i < paramKeys.length; i++) {
-             const key = paramKeys[i];
-             const value = paramsData[key];
-             var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_params_edit_row(this)">-</button> </div> </td> </div>'
-             $('#params').find('div').last().after(paraminputHtml);
-             const inputKey = document.getElementsByName('params_key')[i];
-             const inputValue = document.getElementsByName('params_value')[i];
-             inputKey.value = key;
-             inputValue.value = value;
-             paramsEditInputs += 1
+     console.log('paramsvalues:', p);
+     if(p && p.trim() !== '' && p.trim() !== '{}'){
+         try {
+             const paramsData = JSON.parse(p);
+             const paramKeys = Object.keys(paramsData);
+             for (let i = 0; i < paramKeys.length; i++) {
+                 const key = paramKeys[i];
+                 const value = paramsData[key];
+                 var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_params_edit_row(this)">-</button> </div> </td> </div>'
+                 $('#params').find('div').last().after(paraminputHtml);
+                 const inputKey = document.getElementsByName('params_key')[i];
+                 const inputValue = document.getElementsByName('params_value')[i];
+                 if(inputKey) inputKey.value = key;
+                 if(inputValue) inputValue.value = value;
+                 paramsEditInputs += 1
+             }
+         } catch(e) {
+             console.error('解析params失败:', e);
+             addDefaultParamRows();
          }
      }
      else {
-         var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-             '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-             '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
-         $('#params').find('div').last().after(paraminputHtml);
+         addDefaultParamRows();
      }
+}
+
+function addDefaultParamRows() {
+    var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
+        '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
+        '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    $('#params').find('div').last().after(paraminputHtml);
 }
 
 function showHead(){
     var h = document.getElementById('headvalues').value;
-    console.log(h)
-    const headData = JSON.parse(h);
-    const fieldKeys = Object.keys(headData);
-    if(h!='' && fieldKeys.length>1){
-        for (let i = 0; i < fieldKeys.length-1; i++) {
-            const key = fieldKeys[i];
-            const value = headData[key];
-            var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_head_edit_row(this)">-</button> </div> </td> </div>'
-            $('#head').find('div').last().after(headinputHtml);
-            const inputKey = document.getElementsByName('head_key')[i];
-            const inputValue = document.getElementsByName('head_value')[i];
-            inputKey.value = key;
-            inputValue.value = value;
-            headEditInputs += 1
-        }
+    console.log('headvalues:', h);
+    if(!h || h.trim() === '') {
+        addDefaultHeadRows();
+        return;
     }
-    else {
-         var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Accept"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-             '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Content-Type"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-             '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Cookie"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
-         $('#head').find('div').last().after(headinputHtml);
-    }
+    try {
+        const headData = JSON.parse(h);
+        const fieldKeys = Object.keys(headData);
+        console.log('headData keys:', fieldKeys);
 
+        if(fieldKeys.length > 0){
+            for (let i = 0; i < fieldKeys.length; i++) {
+                const key = fieldKeys[i];
+                const value = headData[key];
+                var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_head_edit_row(this)">-</button> </div> </td> </div>'
+                $('#head').find('div').last().after(headinputHtml);
+                const inputKey = document.getElementsByName('head_key')[i];
+                const inputValue = document.getElementsByName('head_value')[i];
+                if(inputKey) inputKey.value = key;
+                if(inputValue) inputValue.value = value;
+                headEditInputs += 1
+            }
+        } else {
+            addDefaultHeadRows();
+        }
+    } catch(e) {
+        console.error('解析head失败:', e);
+        addDefaultHeadRows();
+    }
+}
+
+function addDefaultHeadRows() {
+    var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Accept"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
+        '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Content-Type"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
+        '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Cookie"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    $('#head').find('div').last().after(headinputHtml);
 }
 
 function showAuth(){
     var a = document.getElementById('authvalues').value;
-    const authData = JSON.parse(a);
-    const authKeys = Object.keys(authData);
-    var i = authKeys.length - 1
-    const key = authKeys[i];
-    const value = authData[key];
-    var authinputHtml = '<div class="input-group"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_auth_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_auth_edit_row(this)">-</button> </div> </td> </div>'
-    $('#auth').find('div').last().after(authinputHtml);
-    const inputKey = document.getElementsByName('auth_key')[0];
-    const inputValue = document.getElementsByName('auth_value')[0];
-    inputKey.value = key;
-    inputValue.value = value;
+    console.log('authvalues:', a);
+    if(!a || a.trim() === '') {
+        addDefaultAuthRow();
+        return;
+    }
+    try {
+        const authData = JSON.parse(a);
+        const authKeys = Object.keys(authData);
+        console.log('authData keys:', authKeys);
+
+        if(authKeys.length > 0){
+            var i = authKeys.length - 1
+            const key = authKeys[i];
+            const value = authData[key];
+            var authinputHtml = '<div class="input-group"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_auth_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_auth_edit_row(this)">-</button> </div> </td> </div>'
+            $('#auth').find('div').last().after(authinputHtml);
+            const inputKey = document.getElementsByName('auth_key')[0];
+            const inputValue = document.getElementsByName('auth_value')[0];
+            if(inputKey) inputKey.value = key;
+            if(inputValue) inputValue.value = value;
+        } else {
+            addDefaultAuthRow();
+        }
+    } catch(e) {
+        console.error('解析auth失败:', e);
+        addDefaultAuthRow();
+    }
 }
 
+function addDefaultAuthRow() {
+    var authinputHtml = '<div class="input-group"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Authorization"></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_auth_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    $('#auth').find('div').last().after(authinputHtml);
+}
 
 paramsInputs = 1
 paramsInput_innerHtml = "<div class=\"input-group\">\
@@ -425,3 +468,45 @@ resEditInput_innerHtml = "<div class=\"input-group\">\
                                             </div>\
                                         </td>\
                                     </div>"
+
+         window.onload = function(){
+             if(loginVerify() == 200){
+             }
+             showRequestTab()
+             setSelect()
+             highlightJSON('formated_dict', 'formated_dict_highlight');
+             var fd = document.getElementById('formated_dict');
+             if(fd) {
+                 fd.addEventListener('input', function(){ highlightJSON('formated_dict', 'formated_dict_highlight'); syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+                 fd.addEventListener('scroll', function(){ syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+             }
+             var fdc = document.getElementById('formated_dict_copy');
+             if(fdc) {
+                 highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
+                 fdc.addEventListener('input', function(){ highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy'); syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+                 fdc.addEventListener('scroll', function(){ syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+             }
+             setTimeout(function(){
+                 showParams();
+                 showHead();
+                 showAuth();
+                 initRequestBody();
+             }, 100);
+        }
+
+        function initRequestBody() {
+            var formatedDict = document.getElementById('formated_dict');
+            var formatedDictCopy = document.getElementById('formated_dict_copy');
+
+            if (formatedDict && formatedDict.value.trim() !== '') {
+                highlightJSON('formated_dict', 'formated_dict_highlight');
+            }
+
+            if (formatedDictCopy && formatedDictCopy.value.trim() !== '') {
+                highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
+            }
+
+            console.log('请求Body初始化完成');
+            console.log('formated_dict값:', formatedDict ? formatedDict.value.substring(0, 50) : 'null');
+            console.log('formated_dict_copy값:', formatedDictCopy ? formatedDictCopy.value.substring(0, 50) : 'null');
+        }

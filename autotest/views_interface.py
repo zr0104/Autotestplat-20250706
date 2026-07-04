@@ -269,7 +269,8 @@ def addInterfaces(req):
             add_params = json.dumps(add_params)
         else:
             add_params =''
-        if(add_params!='' and add_params!=None):
+        # 只有当 params 有实际内容且不是空键值对时，才使用 params 作为 body
+        if(add_params and add_params not in ['', '{"": ""}', '{}', None]):
             body_format='FORM'
             formated_dict = add_params
         else:
@@ -315,12 +316,18 @@ def showEditInterface(req,edit_id,action):
     if(mode == ''):
         mode = 'false'
     update_cookie = interface_list.update_cookie
-    if(interface_list.body !=''):
-        para_dict = json.dumps(eval(interface_list.body), sort_keys=True).encode().decode('raw_unicode_escape')
-        para_str = json.dumps(eval(interface_list.body), sort_keys=True, indent=8).encode().decode('raw_unicode_escape')
-    else:
-        para_dict=''
-        para_str=''
+    para_dict = ''
+    para_str = ''
+    if(interface_list.body and interface_list.body.strip() != ''):
+        try:
+            body_data = eval(interface_list.body)
+            if body_data:
+                para_dict = json.dumps(body_data, sort_keys=True).encode().decode('raw_unicode_escape')
+                para_str = json.dumps(body_data, sort_keys=True, indent=8).encode().decode('raw_unicode_escape')
+        except Exception as e:
+            print(f"解析body失败: {e}")
+            para_dict = interface_list.body
+            para_str = interface_list.body
     head = json.dumps(tmp_head, sort_keys=True, indent=8).encode().decode('raw_unicode_escape')
     body_format = interface_list.body_format
     if(body_format == ''):
@@ -328,7 +335,6 @@ def showEditInterface(req,edit_id,action):
         body_format = 'false'
     elif(body_format == 'FORM' or body_format=='form'):
         params = para_str
-        para_str = ''
     else:
         params = ''
     username = req.session.get('user', '')
@@ -391,7 +397,6 @@ def saveEditInterface(req,edit_id):
             edit_params =''
         if (edit_params != {"": ""} and edit_params != '{"": ""}' and edit_params != '' and edit_params != None):
             body_format = 'FORM'
-            formated_dict = edit_params
         else:
             body_format = "JSON"
         edit_head = eval(str(edit_head))
@@ -450,7 +455,6 @@ def saveCopyInterface(req,edit_id):
             edit_params = ''
         if (edit_params != {"": ""} and edit_params != '{"": ""}' and edit_params != '' and edit_params != None):
             body_format = 'FORM'
-            formated_dict = edit_params
         else:
             body_format = "JSON"
         edit_head = eval(str(edit_head))
@@ -488,7 +492,7 @@ def searchInterface(request):
     apicase_result = []
     results = AutotestplatInterfaceTestcase.objects.values('name').distinct()
     for re in results:
-        webcase_result.append(re['name'])
+        apicase_result.append(re['name'])
     rst = [apicase_result]
     return JsonResponse(rst, safe=False)
 
@@ -540,6 +544,14 @@ def getcaptcha():
         return ''
 
 def assert_is_success(result,assert_keywords,is_contain,is_out = True):
+    # 检查响应是否为HTML登录页面（说明认证失败或URL配置错误）
+    if '<html' in result.lower() or '<!doctype html' in result.lower():
+        if(is_out == True):
+            print_log('【测试结果】： 测试失败，响应内容为HTML页面（可能是URL配置错误或认证失败）')
+        else:
+            print_log('测试结果： 测试失败，响应内容为HTML页面（可能是URL配置错误或认证失败）')
+        return 1
+
     if(is_contain == '1'):
         print_log('\n【断言】： ' + assert_keywords)
         if(assert_keywords in result):
@@ -568,6 +580,7 @@ def assert_is_success(result,assert_keywords,is_contain,is_out = True):
             else:
                 print_log('测试结果： 测试失败，断言不匹配')
             return 1
+
 
 def assert_test_old(response,assert_keywords_old,is_out):
     try:
@@ -655,6 +668,8 @@ def startInterfaceSend(req):
                            '【ERROR】：参数 ' + url + ' 没有参数值，请确认系统参数设置是否正确，是否已执行返回 ' + url + ' 的前置接口，以及确认Redis是否已启动')
         except:
             return HttpResponse('【ERROR】：url参数 ' + url + ' 有误，请重新修改 ')
+        if not url_host.startswith('http://') and not url_host.startswith('https://'):
+            url_host = 'http://' + url_host
         url = url_host+url
         head_list = raw_data['interface_head']
         head=json.loads(json.dumps(head_list))
@@ -764,6 +779,12 @@ def startInterfaceSend(req):
                 response,cookie = interface_test_start(url,body,head,mode,body_format,True)
             except:
                 return HttpResponse('【ERROR】：' + url + ' 接口录入信息有误，请重新修改')
+            
+            # 检查响应是否为HTML登录页面（说明认证失败或URL配置错误）
+            if '<html' in response.lower() or '<!doctype html' in response.lower():
+                print_log('【警告】：响应内容为HTML页面，可能是URL配置错误或认证失败')
+                print_log('【建议】：请检查环境变量配置是否正确，以及前置接口是否已执行')
+            
             if(raw_data['interface_id']!=''):
                 id1=raw_data['interface_id']
                 public_resp = AutotestplatParameter.objects.filter(module_id=int(id1)).exclude(product_id='testplan')

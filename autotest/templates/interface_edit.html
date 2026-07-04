@@ -14,15 +14,72 @@ Auther:：Sen;  Version：Autotestplat-V2.7
     <script src="/static/js/testcase.js"></script>
     <script type="text/javascript" charset="gbk" src="/static/js/fileinput.min.js"></script>
     <script src="/static/js/public.js"></script>
+    <style>
+        .json-key { color: #8B4513; font-weight: bold; }
+        .json-string { color: #008000; }
+        .json-number { color: #0000FF; }
+        .json-boolean { color: #800080; font-weight: bold; }
+        .json-null { color: #800080; font-weight: bold; }
+    </style>
     <script>
          window.onload = function(){
              if(loginVerify() == 200){
              }
              showRequestTab()
              setSelect()
-             showParams()
-             showHead()
-             showAuth()
+             highlightJSON('formated_dict', 'formated_dict_highlight');
+             var fd = document.getElementById('formated_dict');
+             if(fd) {
+                 fd.addEventListener('input', function(){ highlightJSON('formated_dict', 'formated_dict_highlight'); syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+                 fd.addEventListener('scroll', function(){ syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+             }
+             var fdc = document.getElementById('formated_dict_copy');
+             if(fdc) {
+                 highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
+                 fdc.addEventListener('input', function(){ highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy'); syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+                 fdc.addEventListener('scroll', function(){ syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+             }
+             setTimeout(function(){
+                 showParams();
+                 showHead();
+                 showAuth();
+             }, 100);
+        }
+
+        function highlightJSON(textareaId, highlightId) {
+            var textarea = document.getElementById(textareaId);
+            var highlight = document.getElementById(highlightId);
+            if (!textarea || !highlight) return;
+            var text = textarea.value;
+            if (!text.trim()) { highlight.innerHTML = ''; return; }
+            try {
+                JSON.parse(text);
+                var formatted = JSON.stringify(JSON.parse(text), null, 4);
+                textarea.value = formatted;
+                text = formatted;
+            } catch(e) {}
+            var html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html = html.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                var cls = 'json-number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+            highlight.innerHTML = html + '\n';
+        }
+
+        function syncJSONScroll(textareaId, highlightId) {
+            var textarea = document.getElementById(textareaId);
+            var highlight = document.getElementById(highlightId);
+            if (textarea && highlight) {
+                highlight.scrollTop = textarea.scrollTop;
+                highlight.scrollLeft = textarea.scrollLeft;
+            }
         }
     </script>
 </head>
@@ -111,7 +168,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                                              <option style="color: blue; font-weight: bold;">PUT</option>
                                              <option style="color: maroon; font-weight: bold;">DELETE</option>
                                              <option style="color: green; font-weight: bold;">HEAD</option>
-                                             <option style="color: rosybrown; font-weight: bold;">OPTIONS</option>
+                                             <option style="color: mediumslateblue; font-weight: bold;">PATCH</option>
                                          {% elif rec1.mode == 'head' or rec1.mode == 'HEAD' %}
                                              <option style="color: chocolate; font-weight: bold;">POST</option>
                                              <option style="color: green; font-weight: bold;">GET</option>
@@ -163,41 +220,19 @@ Auther:：Sen;  Version：Autotestplat-V2.7
         <div class="row">
         <div class="col-md-11" style="margin-left: 10px">
             <ul id="requesttab" class="nav nav-tabs">
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
                 <li class="active" style="text-align: center;font-size: 12px"><a style="color: black" href="#requestbody" data-toggle="tab">请求Body </a></li>
                 <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#params" data-toggle="tab">参数 </a></li>
-                <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
-                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#assert" data-toggle="tab">断言 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#match" data-toggle="tab">正则表达式 </a></li>
             </ul>
-
-
-            <div id="requestbody" class="tab-content" >
-               <div class="row">
-                   <div class="col-md-10">
-                       <div class="input-group">
-                        <textarea class="formated_dict" id="formated_dict" name="formated_dict" rows="5" style="width:925px">{{ para_str }}</textarea>
-                       </div>
-                   </div>
-                </div>
-            </div>
-
-
-            <div id="params" name="params" class="tab-content" style="display:none;">
-                <div class="row">
-                    <div class="col-md-10">
-                        <div class="input-group">
-                            <input id="paramsvalues" style="display: none" value="{{ params }}"></input>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div id="head" name="head" class="tab-content" style="display:none;">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input class="headvalues" id="headvalues" style="display: none" value="{{ rec1.head }}"></input>
+                            <input id="headvalues" style="display: none" value="{{ head }}"></input>
                         </div>
                     </div>
                 </div>
@@ -207,7 +242,28 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input class="authvalues" id="authvalues" style="display: none" value="{{ rec1.head }}"></input>
+                            <input class="authvalues" id="authvalues" style="display: none" value="{{ head }}"></input>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="requestbody" class="tab-content">
+               <div class="row">
+                   <div class="col-md-10">
+                       <div style="position:relative;">
+                        <pre id="formated_dict_highlight_copy" style="position:absolute;top:0;left:0;right:0;bottom:0;margin:0;padding:6px 12px;overflow:hidden;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;background:#fbfbfb;border:1px solid #e0e0e0;border-radius:4px;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;z-index:1;color:#080808;"></pre>
+                        <textarea class="formated_dict" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}'>{{ para_str|default_if_none:"" }}</textarea>
+                       </div>
+                   </div>
+                </div>
+            </div>
+
+            <div id="params" name="params" class="tab-content" style="display:none;">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <input id="paramsvalues" style="display: none" value="{{ params }}"></input>
                         </div>
                     </div>
                 </div>
@@ -454,40 +510,19 @@ Auther:：Sen;  Version：Autotestplat-V2.7
         <div class="row">
         <div class="col-md-11" style="margin-left: 10px">
             <ul id="requesttab" class="nav nav-tabs">
-                <li class="active" style="text-align: center;font-size: 12px"><a style="color: black" href="#requestbody" data-toggle="tab">请求Body </a></li>
-                <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#params" data-toggle="tab">参数 </a></li>
-                <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#requestbody" data-toggle="tab">请求Body </a></li>
+                <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#params" data-toggle="tab">参数 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#assert" data-toggle="tab">断言 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#match" data-toggle="tab">正则表达式 </a></li>
             </ul>
-
-
-            <div id="requestbody" class="tab-content" >
-               <div class="row">
-                   <div class="col-md-10">
-                       <div class="input-group">
-                        <textarea class="formated_dict" id="formated_dict" name="formated_dict" rows="5" style="width:925px">{{ para_str }}</textarea>
-                       </div>
-                   </div>
-                </div>
-            </div>
-
-            <div id="params" name="params" class="tab-content" style="display:none;">
-                <div class="row">
-                    <div class="col-md-10">
-                        <div class="input-group">
-                            <input id="paramsvalues" style="display: none" value="{{ params }}"></input>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div id="head" name="head" class="tab-content" style="display:none;">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input id="headvalues" style="display: none" value="{{ rec1.head }}"></input>
+                            <input id="headvalues" style="display: none" value="{{ head }}"></input>
                         </div>
                     </div>
                 </div>
@@ -497,7 +532,29 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input class="authvalues" id="authvalues" style="display: none" value="{{ rec1.head }}"></input>
+                            <input class="authvalues" id="authvalues" style="display: none" value="{{ head }}"></input>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="requestbody" class="tab-content" >
+               <div class="row">
+                   <div class="col-md-10">
+                       <div style="position:relative;">
+                        <pre id="formated_dict_highlight_copy" style="position:absolute;top:0;left:0;right:0;bottom:0;margin:0;padding:6px 12px;overflow:hidden;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;background:#fbfbfb;border:1px solid #e0e0e0;border-radius:4px;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;z-index:1;color:#080808;"></pre>
+                        <textarea class="formated_dict" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}'>{{ para_str|default_if_none:"" }}</textarea>
+                       </div>
+                   </div>
+                </div>
+            </div>
+
+
+            <div id="params" name="params" class="tab-content" style="display:none;">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <input id="paramsvalues" style="display: none" value="{{ params }}"></input>
                         </div>
                     </div>
                 </div>
@@ -627,10 +684,11 @@ Auther:：Sen;  Version：Autotestplat-V2.7
         if ($('#edit_name')[0] == undefined || $('#edit_name')[0] == null) {
             var interface_id = {{ edit_id }};
             var interface_name = $('#copy_name')[0].value;
-            var interface_body = $('#formated_dict')[0].value;
+            var interface_body = $('#formated_dict_copy')[0] ? $('#formated_dict_copy')[0].value : '';
             var interface_env = $('#copy_url_host')[0].value;
             var interface_mode = $('#mode')[0].value;
             var interface_url = $('#copy_url')[0].value;
+
             var headKeys = document.getElementsByName('head_key');
             var headValues = document.getElementsByName('head_value');
             var authKeys = document.getElementsByName('auth_key');
@@ -666,10 +724,11 @@ Auther:：Sen;  Version：Autotestplat-V2.7
         } else {
             var interface_id = {{ edit_id }};
             var interface_name = $('#edit_name')[0].value;
-            var interface_body = $('#formated_dict')[0].value;
+            var interface_body = $('#formated_dict')[0] ? $('#formated_dict')[0].value : '';
             var interface_env = $('#edit_url_host')[0].value;
             var interface_mode = $('#mode')[0].value;
             var interface_url = $('#edit_url')[0].value;
+
             var headKeys = document.getElementsByName('head_key');
             var headValues = document.getElementsByName('head_value');
             var authKeys = document.getElementsByName('auth_key');
@@ -751,19 +810,39 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                     $('#responsecodehtml').html(resCodeHtml_fail);
                 }
                 $('#response_code').append(respones_code+'&nbsp;&nbsp;&nbsp;'+response_time+'秒')
-                respones_assert=result.split('【断言】： ')[1]
-                $('#assertrst').append('【断言】： '+respones_assert)
-                respones_ass=respones_assert.split('【测试结果】：')[0]
-                respones_ast=respones_assert.split('【测试结果】：')[1]
-                if(respones_ast.includes('测试失败，断言不匹配')){
-                    document.getElementById('rst').style.color='red'
-                }else if(respones_ass.replace(/\s+/g, '')===''){
-                    document.getElementById('rst').style.color='red'
-                }else{
-                    document.getElementById('rst').style.color='black'
+
+                // 安全地提取断言结果，避免 undefined
+                var assertParts = result.split('【断言】： ');
+                if (assertParts.length > 1) {
+                    respones_assert = assertParts[1];
+                    $('#assertrst').append('【断言】： '+respones_assert);
+
+                    // 检查是否包含测试结果
+                    if (respones_assert.includes('【测试结果】：')) {
+                        respones_ass = respones_assert.split('【测试结果】：')[0];
+                        respones_ast = respones_assert.split('【测试结果】：')[1];
+
+                        if(respones_ast.includes('测试失败，断言不匹配') ||
+                           respones_ast.includes('测试失败，响应内容为HTML页面')){
+                            document.getElementById('rst').style.color='red';
+                        } else if(respones_ass.replace(/\s+/g, '')===''){
+                            document.getElementById('rst').style.color='red';
+                        } else {
+                            document.getElementById('rst').style.color='black';
+                        }
+                    } else {
+                        // 如果没有测试结果，显示红色警告
+                        document.getElementById('rst').style.color='red';
+                    }
+                } else {
+                    // 如果没有断言信息，显示错误提示
+                    $('#assertrst').append('【错误】：未获取到断言结果，请检查接口配置');
+                    document.getElementById('rst').style.color='red';
                 }
+
                 resquest_data=result.split('【Cookies】')[0]
                 $('#reqhead').append(resquest_data)
+
             },
             fail: function (result) {
             }

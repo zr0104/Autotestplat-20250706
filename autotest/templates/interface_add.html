@@ -14,14 +14,74 @@ Auther:：Sen;  Version：Autotestplat-V2.7
     <script src="/static/js/public.js"></script>
     <script src="/static/js/testcase.js"></script>
     <script type="text/javascript" charset="gbk" src="/static/js/fileinput.min.js"></script>
+    <style>
+        .json-key { color: #8B4513; font-weight: bold; }
+        .json-string { color: #008000; }
+        .json-number { color: #0000FF; }
+        .json-boolean { color: #800080; font-weight: bold; }
+        .json-null { color: #800080; font-weight: bold; }
+    </style>
     <script>
          window.onload = function(){
              if(loginVerify() == 200){
              }
              showRequestTab()
              setSelect()
+
+             // 初始化请求Body的JSON高亮
+             var fd = document.getElementById('formated_dict');
+             if(fd) {
+                 fd.addEventListener('input', function(){
+                     if (typeof highlightJSON === 'function') {
+                         highlightJSON('formated_dict', 'formated_dict_highlight');
+                     }
+                     if (typeof syncJSONScroll === 'function') {
+                         syncJSONScroll('formated_dict', 'formated_dict_highlight');
+                     }
+                 });
+                 fd.addEventListener('scroll', function(){
+                     if (typeof syncJSONScroll === 'function') {
+                         syncJSONScroll('formated_dict', 'formated_dict_highlight');
+                     }
+                 });
+             }
         }
 
+        function highlightJSON(textareaId, highlightId) {
+            var textarea = document.getElementById(textareaId);
+            var highlight = document.getElementById(highlightId);
+            if (!textarea || !highlight) return;
+            var text = textarea.value;
+            if (!text.trim()) { highlight.innerHTML = ''; return; }
+            try {
+                JSON.parse(text);
+                var formatted = JSON.stringify(JSON.parse(text), null, 4);
+                textarea.value = formatted;
+                text = formatted;
+            } catch(e) {}
+            var html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html = html.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+                var cls = 'json-number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+            highlight.innerHTML = html + '\n';
+        }
+
+        function syncJSONScroll(textareaId, highlightId) {
+            var textarea = document.getElementById(textareaId);
+            var highlight = document.getElementById(highlightId);
+            if (textarea && highlight) {
+                highlight.scrollTop = textarea.scrollTop;
+                highlight.scrollLeft = textarea.scrollLeft;
+            }
+        }
     </script>
 </head>
 <body>
@@ -112,74 +172,13 @@ Auther:：Sen;  Version：Autotestplat-V2.7
     <div class="row">
         <div class="col-md-11" style="margin-left: 10px;border: none">
             <ul id="requesttab" class="nav nav-tabs">
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
+                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
                 <li class="active" style="text-align: center;font-size: 12px"><a style="color: black" href="#requestbody" data-toggle="tab">请求Body </a></li>
                 <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#params" data-toggle="tab">参数 </a></li>
-                <li style="text-align: center;font-size: 12px;"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
-                <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#assert" data-toggle="tab">断言 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#match" data-toggle="tab">正则表达式 </a></li>
             </ul>
-
-            <div id="requestbody" class="tab-content" >
-               <div class="row">
-                   <div class="col-md-10">
-                       <div class="input-group">
-                        <textarea class="formated_dict" id="formated_dict" name="formated_dict" rows="5" style="width:925px"></textarea>
-                       </div>
-                   </div>
-                </div>
-            </div>
-
-            <div id="params" name="params" class="tab-content" style="display:none;">
-                <div class="row">
-                    <div class="col-md-10">
-                        <div class="input-group">
-                            <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
-                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
-                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
-                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                         </div>
-                    </div>
-                </div>
-            </div>
 
             <div id="head" name="head" class="tab-content" style="display:none;">
                 <div class="row">
@@ -253,6 +252,69 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                                     </div>
                             </td>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="requestbody" class="tab-content">
+               <div class="row">
+                   <div class="col-md-10">
+                       <div style="position:relative;">
+                        <pre id="formated_dict_highlight" style="position:absolute;top:0;left:0;right:0;bottom:0;margin:0;padding:6px 12px;overflow:hidden;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;background:#fbfbfb;border:1px solid #e0e0e0;border-radius:4px;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;z-index:1;color:#080808;"></pre>
+                        <textarea class="form-control" id="formated_dict" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}'></textarea>
+                       </div>
+                   </div>
+                </div>
+            </div>
+
+
+            <div id="params" name="params" class="tab-content" style="display:none;">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
+                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default"
+                                            onclick="add_params_add_row(this)">+
+                                    </button>
+                                    </div>
+                            </td>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
+                                    </div>
+                            </td>
+                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
+                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default"
+                                            onclick="add_params_add_row(this)">+
+                                    </button>
+                                    </div>
+                            </td>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
+                                    </div>
+                            </td>
+                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
+                            <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default"
+                                            onclick="add_params_add_row(this)">+
+                                    </button>
+                                    </div>
+                            </td>
+                            <td style="width: 80px;text-align: center;">
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
+                                    </div>
+                            </td>
+                         </div>
                     </div>
                 </div>
             </div>

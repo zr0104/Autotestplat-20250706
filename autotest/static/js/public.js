@@ -776,19 +776,24 @@ function del(tips="删除成功"){
         aysnc: false,
         data: AjaxObjectData(delFieldNames,inputFields),
         success: (rst) => {
-            if(rst === '200'){
-                operationSelectValue('delete')
-                alert("删除成功")
-                $("#deleteModal").modal('hide')
+            console.log('删除响应:', rst, '类型:', typeof rst);
+
+            // 先关闭弹框
+            $("#deleteModal").modal('hide')
+
+            // 使用宽松比较，同时支持字符串和数字
+            if(rst == '200' || rst == 200){
+                // 直接刷新页面，无需alert确认
+                window.location.reload(true)
             }
             else{
-                console.log(rst)
-                return alert(rst)
+                console.log('删除失败，响应内容:', rst)
+                alert('删除失败: ' + rst)
             }
         },
         error: (rst) => {
-            console.log(rst)
-            return alert(rst)
+            console.log('删除请求出错:', rst)
+            alert('删除请求出错: ' + rst)
         },
     })
 }
