@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
 
 from autotest import views_index
+
+def favicon_view(request):
+    return HttpResponse(b'', content_type='image/x-icon')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('autotest/', include('autotest.urls')),
-    #  修改根路径视图
-    path('', views_index.indexView, name='index'),  # 添加根路径处理
+    path('favicon.ico', favicon_view),
+    path('', views_index.indexView, name='index'),
 ]

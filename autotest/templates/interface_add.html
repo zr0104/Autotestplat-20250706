@@ -183,49 +183,23 @@ Auther:：Sen;  Version：Autotestplat-V2.7
             <div id="head" name="head" class="tab-content" style="display:none;">
                 <div class="row">
                     <div class="col-md-10">
-                        <div class="input-group">
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
                             <input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Content-Type"></input>
                             <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value="application/json; charset=utf-8"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_head_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_head_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
                             <input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Accept"></input>
                             <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_head_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_head_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
                             <input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Cookie"></input>
                             <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_head_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_head_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
                         </div>
                     </div>
                 </div>
@@ -234,23 +208,15 @@ Auther:：Sen;  Version：Autotestplat-V2.7
             <div id="auth" name="auth" class="tab-content" style="display:none;">
                 <div class="row">
                     <div class="col-md-10">
-                        <div class="input-group">
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
                             <input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="token"></input>
                             <select class="selectpicker form-control" id="head_value" name="head_value" style="width:260px;font-size: 12px;text-align: center">
                                   {% for  auth_para  in auth_paras %}
                                       <option>{ {{ auth_para.keywords }} }</option>
                                   {% endfor %}
                               </select>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">+</button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
+                            <button type="button" class="btn btn-default btn-sm" disabled style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
                         </div>
                     </div>
                 </div>
@@ -271,50 +237,24 @@ Auther:：Sen;  Version：Autotestplat-V2.7
             <div id="params" name="params" class="tab-content" style="display:none;">
                 <div class="row">
                     <div class="col-md-10">
-                        <div class="input-group">
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
                             <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_params_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
+                            <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
                             <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                             <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_params_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;">
+                            <input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key"></input>
                             <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value"></input>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default"
-                                            onclick="add_params_add_row(this)">+
-                                    </button>
-                                    </div>
-                            </td>
-                            <td style="width: 80px;text-align: center;">
-                                    <div class="btn-group">
-                                    <button type="button" class="btn btn-default" disabled="disabled">-</button>
-                                    </div>
-                            </td>
-                         </div>
+                            <button type="button" class="btn btn-default btn-sm" onclick="add_params_add_row(this)" style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
+                        </div>
                     </div>
                 </div>
             </div>

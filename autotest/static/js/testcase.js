@@ -236,7 +236,7 @@ function showParams(){
              for (let i = 0; i < paramKeys.length; i++) {
                  const key = paramKeys[i];
                  const value = paramsData[key];
-                 var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_params_edit_row(this)">-</button> </div> </td> </div>'
+                 var paraminputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" onclick="del_params_edit_row(this)">-</button></div>'
                  $('#params').find('div').last().after(paraminputHtml);
                  const inputKey = document.getElementsByName('params_key')[i];
                  const inputValue = document.getElementsByName('params_value')[i];
@@ -255,9 +255,9 @@ function showParams(){
 }
 
 function addDefaultParamRows() {
-    var paraminputHtml = '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-        '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-        '<div class="input-group"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_params_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    var paraminputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>' +
+        '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>' +
+        '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="params_key" name="params_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="params_value" name="params_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>'
     $('#params').find('div').last().after(paraminputHtml);
 }
 
@@ -277,7 +277,7 @@ function showHead(){
             for (let i = 0; i < fieldKeys.length; i++) {
                 const key = fieldKeys[i];
                 const value = headData[key];
-                var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_head_edit_row(this)">-</button> </div> </td> </div>'
+                var headinputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" onclick="del_head_edit_row(this)">-</button></div>'
                 $('#head').find('div').last().after(headinputHtml);
                 const inputKey = document.getElementsByName('head_key')[i];
                 const inputValue = document.getElementsByName('head_value')[i];
@@ -295,9 +295,9 @@ function showHead(){
 }
 
 function addDefaultHeadRows() {
-    var headinputHtml = '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Accept"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-        '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Content-Type"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>' +
-        '<div class="input-group"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Cookie"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_head_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    var headinputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Accept"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>' +
+        '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Content-Type"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>' +
+        '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="head_key" name="head_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Cookie"></input> <input id="head_value" name="head_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>'
     $('#head').find('div').last().after(headinputHtml);
 }
 
@@ -317,7 +317,7 @@ function showAuth(){
             var i = authKeys.length - 1
             const key = authKeys[i];
             const value = authData[key];
-            var authinputHtml = '<div class="input-group"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_auth_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" onclick="del_auth_edit_row(this)">-</button> </div> </td> </div>'
+            var authinputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value=""></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_auth_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" onclick="del_auth_edit_row(this)">-</button></div>'
             $('#auth').find('div').last().after(authinputHtml);
             const inputKey = document.getElementsByName('auth_key')[0];
             const inputValue = document.getElementsByName('auth_value')[0];
@@ -333,100 +333,50 @@ function showAuth(){
 }
 
 function addDefaultAuthRow() {
-    var authinputHtml = '<div class="input-group"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Authorization"></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default"onclick="add_auth_edit_row(this)">+ </button> </div> </td> <td style="width: 80px;text-align: center;"> <div class="btn-group"> <button type="button" class="btn btn-default" disabled>-</button> </div> </td> </div>'
+    var authinputHtml = '<div class="input-group" style="margin-bottom: 5px; display: flex; align-items: center;"><input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="Authorization"></input> <input id="auth_value" name="auth_value" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Value" value=""></input> <button type="button" class="btn btn-default btn-sm" onclick="add_auth_edit_row(this)" style="margin-left: 5px;">+</button> <button type="button" class="btn btn-default btn-sm" disabled>-</button></div>'
     $('#auth').find('div').last().after(authinputHtml);
 }
 
 paramsInputs = 1
-paramsInput_innerHtml = "<div class=\"input-group\">\
+paramsInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"params_key\" name=\"params_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
                             <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\"\
-                                            onclick=\"add_params_add_row(this)\">+\
-                                    </button>\
-                                    </div>\
-                            </td>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\" onclick=\"del_params_add_row(this)\">-</button>\
-                                    </div>\
-                            </td>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_params_add_row(this)\" style=\"margin-left: 5px;\">+</button>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_params_add_row(this)\">-</button>\
                          </div>"
 
 paramsEditInputs = 0
-paramsEditInput_innerHtml = "<div class=\"input-group\">\
+paramsEditInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"params_key\" name=\"params_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
                             <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\"\
-                                            onclick=\"add_params_edit_row(this)\">+\
-                                    </button>\
-                                    </div>\
-                            </td>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\" onclick=\"del_params_edit_row(this)\">-</button>\
-                                    </div>\
-                            </td>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_params_edit_row(this)\" style=\"margin-left: 5px;\">+</button>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_params_edit_row(this)\">-</button>\
                          </div>"
 
 
 headInputs = 1
-headInput_innerHtml = "<div class=\"input-group\">\
+headInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"head_key\" name=\"head_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
                             <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\"\
-                                            onclick=\"add_head_add_row(this)\">+\
-                                    </button>\
-                                    </div>\
-                            </td>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\" onclick=\"del_head_add_row(this)\">-</button>\
-                                    </div>\
-                            </td>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_head_add_row(this)\" style=\"margin-left: 5px;\">+</button>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_head_add_row(this)\">-</button>\
                          </div>"
 
 
 headEditInputs = 0
-headEditInput_innerHtml = "<div class=\"input-group\">\
+headEditInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"head_key\" name=\"head_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
                             <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\"\
-                                            onclick=\"add_head_edit_row(this)\">+\
-                                    </button>\
-                                    </div>\
-                            </td>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\" onclick=\"del_head_edit_row(this)\">-</button>\
-                                    </div>\
-                            </td>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_head_edit_row(this)\" style=\"margin-left: 5px;\">+</button>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_head_edit_row(this)\">-</button>\
                          </div>"
 
 authEditInputs = 0
-authEditInput_innerHtml = "<div class=\"input-group\">\
+authEditInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"auth_key\" name=\"auth_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
                             <input id=\"auth_value\" name=\"auth_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\"\
-                                            onclick=\"add_auth_edit_row(this)\">+\
-                                    </button>\
-                                    </div>\
-                            </td>\
-                            <td style=\"width: 80px;text-align: center;\">\
-                                    <div class=\"btn-group\">\
-                                    <button type=\"button\" class=\"btn btn-default\" onclick=\"del_auth_edit_row(this)\">-</button>\
-                                    </div>\
-                            </td>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_auth_edit_row(this)\" style=\"margin-left: 5px;\">+</button>\
+                            <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_auth_edit_row(this)\">-</button>\
                          </div>"
 
 resInputs = 1
