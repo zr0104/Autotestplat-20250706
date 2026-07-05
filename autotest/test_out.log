@@ -1,65 +1,15 @@
-cur_id: 2103
-Traceback (most recent call last):
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 169, in _new_conn
-    conn = connection.create_connection(
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\connection.py", line 96, in create_connection
-    raise err
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\connection.py", line 86, in create_connection
-    sock.connect(sa)
-ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+【接口名称】: 接口用例
+【请求方式】: POST
+【关联参数】： {token_Autotestplat} 在响应数据中未匹配到，请检测前置接口关键字配置，以及Redis是否已启动
+【请求URL】：http://127.0.0.1:8000/autotest/user/getTableData/
+【请求head】：{"Accept": "", "Content-Type": "application/json;charset=utf-8", "Cookie": "", "token": "error : token value is not found"}
+【请求参数】：{}
+【Cookies】：
 
-During handling of the above exception, another exception occurred:
+【响应状态码】：200    OK
+【响应数据】：{"data": [[2, "pbkdf2_sha256$600000$WhInC31VDSJr8JUjDSdqO5$qaJ2068Pb/1O6ei+WuVJyxAMQ96IXC63UO5BkTZ1ul0=", "2025-08-25T13:14:34.140Z", 0, "sen", "1", "Autotestplat", "13711112221", 1, 1, "2023-10-04T03:24:35Z"], [4, "pbkdf2_sha256$870000$tx6WqzYUCxluviFrfLDm6v$QXsXSFgkSK0l/EDpizONdaR5GMMjuk5n3hWGGHMIvmo=", "2025-03-15T11:35:39.485Z", 0, "test", "", "Autotestplat", "13800001111", 1, 1, "2023-10-13T06:23:00Z"], [7, "pbkdf2_sha256$600000$Wue2Uvnw0zswx4kIb1DhOp$wA7QzkBxstC1SH8bfZMqVikWFXdpQoVj3MF8gaf+LgI=", "2026-07-05T06:31:04.263Z", 1, "root", "4", "ChatGPT", "13822223333", 1, 1, "2023-11-06T00:00:00Z"], [8, "pbkdf2_sha256$600000$2B4kb6wrPTHLz6qfaAfZ4h$kL+eGOaDnBjUWJni/SmwElO975u8utYs82ajVnvYzWw=", "2026-03-01T10:56:58.609Z", 1, "admin", "", "SenTest", "13822223333", 1, 1, "2023-11-06T00:00:00Z"]]}
+【响应时间】：0.015216 秒
 
-Traceback (most recent call last):
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 699, in urlopen
-    httplib_response = self._make_request(
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 394, in _make_request
-    conn.request(method, url, **httplib_request_kw)
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 234, in request
-    super(HTTPConnection, self).request(method, url, body=body, headers=headers)
-  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1230, in request
-    self._send_request(method, url, body, headers, encode_chunked)
-  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1276, in _send_request
-    self.endheaders(body, encode_chunked=encode_chunked)
-  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1225, in endheaders
-    self._send_output(message_body, encode_chunked=encode_chunked)
-  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 1004, in _send_output
-    self.send(msg)
-  File "C:\Program Files\Python\Python38-32\lib\http\client.py", line 944, in send
-    self.connect()
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 200, in connect
-    conn = self._new_conn()
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connection.py", line 181, in _new_conn
-    raise NewConnectionError(
-urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x065606A0>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\adapters.py", line 440, in send
-    resp = conn.urlopen(
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\connectionpool.py", line 755, in urlopen
-    retries = retries.increment(
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\urllib3\util\retry.py", line 574, in increment
-    raise MaxRetryError(_pool, url, error or ResponseError(cause))
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x065606A0>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 849, in interface_test_start
-    response,cookie = Method_POST(url,body,head,body_format,is_out)
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 919, in Method_POST
-    r = request_post(url, body, head, body_format)
-  File "C:\Users\87389\PycharmProjects\Autotestplat-20250706\autotest\views_interface.py", line 878, in request_post
-    r = session.post(url,body,headers = head)
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 577, in post
-    return self.request('POST', url, data=data, json=json, **kwargs)
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 529, in request
-    resp = self.send(prep, **send_kwargs)
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\sessions.py", line 645, in send
-    r = adapter.send(request, **kwargs)
-  File "C:\Program Files\Python\Python38-32\lib\site-packages\requests\adapters.py", line 519, in send
-    raise ConnectionError(e, request=request)
-requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=80): Max retries exceeded with url: /autotest/user/getTableData/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x065606A0>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
+【断言】： 
+【测试结果】： 测试通过
 
