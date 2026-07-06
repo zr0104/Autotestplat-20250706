@@ -145,7 +145,7 @@ def loadApiTestcaseTable(request,menu_module_id):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None):
+        if (item[5] == None or item[5] == ''):
             count = 0
         else:
             count = tmp.count(int(item[5]))
@@ -231,14 +231,28 @@ def showAddWindow(req,menu_module_id):
         env_para = AutotestplatParameter.objects.filter(type="env")
         auth_para = AutotestplatParameter.objects.filter(type="auth")
         module_all = AutotestplatModule.objects.filter(type='api')
+        global_header = EnvGlobalHeader.objects.filter(is_enable=1).order_by('sort_order')
+        global_request = EnvGlobalRequest.objects.filter(is_enable=1).order_by('sort_order')
+        global_extract = EnvGlobalExtract.objects.filter(is_enable=1).order_by('sort_order')
+        global_validate = EnvGlobalValidate.objects.filter(is_enable=1).order_by('sort_order')
+        global_variables_temp = EnvGlobalVariablesTemp.objects.filter(is_enable=1).order_by('sort_order')
+        global_back_variables = EnvGlobalBackVariables.objects.filter(is_enable=1).order_by('sort_order')
     else:
         product_id = AuthUser.objects.filter(username=username).first().last_name
         product_all = AutotestplatProduct.objects.filter(id=product_id).all()
         env_para = AutotestplatParameter.objects.filter(product_id=product_id,type="env")
         auth_para = AutotestplatParameter.objects.filter(product_id=product_id,type="auth")
         module_all = AutotestplatModule.objects.filter(product_id=product_id,type='api')
+        global_header = EnvGlobalHeader.objects.filter(is_enable=1).order_by('sort_order')
+        global_request = EnvGlobalRequest.objects.filter(is_enable=1).order_by('sort_order')
+        global_extract = EnvGlobalExtract.objects.filter(is_enable=1).order_by('sort_order')
+        global_validate = EnvGlobalValidate.objects.filter(is_enable=1).order_by('sort_order')
+        global_variables_temp = EnvGlobalVariablesTemp.objects.filter(is_enable=1).order_by('sort_order')
+        global_back_variables = EnvGlobalBackVariables.objects.filter(is_enable=1).order_by('sort_order')
     c = csrf(req)
-    c.update({'head_json': head_json,'public_list': public_list,"env_paras":env_para,"auth_paras":auth_para,"product_alls":product_all,'module_all':module_all,'menu_module_id':menu_module_id})
+    c.update({'head_json': head_json,'public_list': public_list,"env_paras":env_para,"auth_paras":auth_para,"product_alls":product_all,'module_all':module_all,'menu_module_id':menu_module_id,
+              'global_header': global_header, 'global_request': global_request, 'global_extract': global_extract,
+              'global_validate': global_validate, 'global_variables_temp': global_variables_temp, 'global_back_variables': global_back_variables})
     return render(req,"interface_add.html",c)
 
 def addInterfaces(req):
@@ -251,6 +265,7 @@ def addInterfaces(req):
         formated_dict = req.POST.get('formated_dict','')
         add_creator = req.session.get('user', '')
         add_head_key = req.POST.getlist('head_key','')
+        add_auth_key = req.POST.getlist('auth_key','')
         add_params_key = req.POST.getlist('params_key','')
         add_mode = req.POST.get('mode','')
         add_cookie = req.POST.get('add_cookie','')
@@ -260,6 +275,18 @@ def addInterfaces(req):
         if(add_head_key != ['']):
             add_head_value = req.POST.getlist('head_value','')
             add_head = {key: value for key, value in zip(add_head_key, add_head_value)}
+            if(add_auth_key != ['']):
+                add_auth_value = req.POST.getlist('auth_value','')
+                add_auth = {key: value for key, value in zip(add_auth_key, add_auth_value)}
+                merged_dict = {}
+                merged_dict.update(add_head)
+                merged_dict.update(add_auth)
+                add_head = json.dumps(merged_dict)
+            else:
+                add_head = json.dumps(add_head)
+        elif(add_auth_key != ['']):
+            add_auth_value = req.POST.getlist('auth_value','')
+            add_head = {key: value for key, value in zip(add_auth_key, add_auth_value)}
             add_head = json.dumps(add_head)
         else:
             add_head = ''
@@ -343,12 +370,24 @@ def showEditInterface(req,edit_id,action):
         env_para = AutotestplatParameter.objects.filter(type="env")
         auth_para = AutotestplatParameter.objects.filter(type="auth")
         module_all = AutotestplatModule.objects.filter(type='api')
+        global_header = EnvGlobalHeader.objects.filter(is_enable=1).order_by('sort_order')
+        global_request = EnvGlobalRequest.objects.filter(is_enable=1).order_by('sort_order')
+        global_extract = EnvGlobalExtract.objects.filter(is_enable=1).order_by('sort_order')
+        global_validate = EnvGlobalValidate.objects.filter(is_enable=1).order_by('sort_order')
+        global_variables_temp = EnvGlobalVariablesTemp.objects.filter(is_enable=1).order_by('sort_order')
+        global_back_variables = EnvGlobalBackVariables.objects.filter(is_enable=1).order_by('sort_order')
     else:
         product_id = AuthUser.objects.filter(username=username).first().last_name
         product_all = AutotestplatProduct.objects.filter(id=product_id).all()
         env_para = AutotestplatParameter.objects.filter(product_id=product_id).filter(type="env")
         auth_para = AutotestplatParameter.objects.filter(product_id=product_id, type="auth")
         module_all = AutotestplatModule.objects.filter(product_id=product_id,type='api')
+        global_header = EnvGlobalHeader.objects.filter(is_enable=1).order_by('sort_order')
+        global_request = EnvGlobalRequest.objects.filter(is_enable=1).order_by('sort_order')
+        global_extract = EnvGlobalExtract.objects.filter(is_enable=1).order_by('sort_order')
+        global_validate = EnvGlobalValidate.objects.filter(is_enable=1).order_by('sort_order')
+        global_variables_temp = EnvGlobalVariablesTemp.objects.filter(is_enable=1).order_by('sort_order')
+        global_back_variables = EnvGlobalBackVariables.objects.filter(is_enable=1).order_by('sort_order')
     public_list_resp = AutotestplatParameter.objects.filter(module_id=int(edit_id)).filter(type='res')
     flag_resp = 'false'
     menu_module=AutotestplatModule.objects.filter(id=interface_list.menu_module_id).first()
@@ -359,7 +398,9 @@ def showEditInterface(req,edit_id,action):
     if(list(public_list_resp) != []):
         flag_resp = 'true'
     c = csrf(req)
-    c.update({'edit_id': edit_id,'mode': mode,'body_format': body_format,'update_cookie': update_cookie,'interface_list_tmp': interface_list_tmp,'params':params,'head': head,'para_dict': para_dict,'para_str': para_str,'public_list_resp': public_list_resp,'flag_resp': flag_resp,'action': action,'env_paras': env_para,'auth_paras': auth_para,'product_alls':product_all,'product_name':product_name,'module_all':module_all,'menu_module_name':menu_module_name})
+    c.update({'edit_id': edit_id,'mode': mode,'body_format': body_format,'update_cookie': update_cookie,'interface_list_tmp': interface_list_tmp,'params':params,'head': head,'para_dict': para_dict,'para_str': para_str,'public_list_resp': public_list_resp,'flag_resp': flag_resp,'action': action,'env_paras': env_para,'auth_paras': auth_para,'product_alls':product_all,'product_name':product_name,'module_all':module_all,'menu_module_name':menu_module_name,
+              'global_header': global_header, 'global_request': global_request, 'global_extract': global_extract,
+              'global_validate': global_validate, 'global_variables_temp': global_variables_temp, 'global_back_variables': global_back_variables})
     return render(req,"interface_edit.html",c)
 
 def saveEditInterface(req,edit_id):

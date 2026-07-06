@@ -120,7 +120,7 @@ def loadretoAiTestcaseTable(request,require_id):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None):
+        if (item[5] == None or item[5] == ''):
             count = 0
         else:
             count = tmp.count(int(item[5]))

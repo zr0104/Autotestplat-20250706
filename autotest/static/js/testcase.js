@@ -227,7 +227,8 @@ function setSelect(){
 
 
 function showParams(){
-     var p = document.getElementById('paramsvalues').value;
+     var pEl = document.getElementById('paramsvalues');
+     var p = pEl ? pEl.value : '';
      console.log('paramsvalues:', p);
      if(p && p.trim() !== '' && p.trim() !== '{}'){
          try {
@@ -246,11 +247,7 @@ function showParams(){
              }
          } catch(e) {
              console.error('解析params失败:', e);
-             addDefaultParamRows();
          }
-     }
-     else {
-         addDefaultParamRows();
      }
 }
 
@@ -262,10 +259,11 @@ function addDefaultParamRows() {
 }
 
 function showHead(){
-    var h = document.getElementById('headvalues').value;
+    var hEl = document.getElementById('headvalues');
+    var h = hEl ? hEl.value : '';
     console.log('headvalues:', h);
     if(!h || h.trim() === '') {
-        addDefaultHeadRows();
+        // HTML中已有静态默认行，不需要再添加
         return;
     }
     try {
@@ -285,12 +283,9 @@ function showHead(){
                 if(inputValue) inputValue.value = value;
                 headEditInputs += 1
             }
-        } else {
-            addDefaultHeadRows();
         }
     } catch(e) {
         console.error('解析head失败:', e);
-        addDefaultHeadRows();
     }
 }
 
@@ -302,10 +297,11 @@ function addDefaultHeadRows() {
 }
 
 function showAuth(){
-    var a = document.getElementById('authvalues').value;
+    var aEl = document.getElementById('authvalues');
+    var a = aEl ? aEl.value : '';
     console.log('authvalues:', a);
     if(!a || a.trim() === '') {
-        addDefaultAuthRow();
+        // HTML中已有静态默认行，不需要再添加
         return;
     }
     try {
@@ -323,12 +319,9 @@ function showAuth(){
             const inputValue = document.getElementsByName('auth_value')[0];
             if(inputKey) inputKey.value = key;
             if(inputValue) inputValue.value = value;
-        } else {
-            addDefaultAuthRow();
         }
     } catch(e) {
         console.error('解析auth失败:', e);
-        addDefaultAuthRow();
     }
 }
 
@@ -338,35 +331,35 @@ function addDefaultAuthRow() {
 }
 
 paramsInputs = 1
-paramsInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
+paramsInput_innerHtml = "<div class=\"var-value-wrapper\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"params_key\" name=\"params_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
-                            <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
+                            <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control autocomplete-input\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"输入${触发提示\" onkeyup=\"showAutocomplete(this, globalVariablesTempVars, 'params')\" onblur=\"hideAutocomplete(this)\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_params_add_row(this)\" style=\"margin-left: 5px;\">+</button>\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_params_add_row(this)\">-</button>\
                          </div>"
 
 paramsEditInputs = 0
-paramsEditInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
+paramsEditInput_innerHtml = "<div class=\"var-value-wrapper\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"params_key\" name=\"params_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
-                            <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
+                            <input id=\"params_value\" name=\"params_value\" type=\"text\" class=\"form-control autocomplete-input\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"输入${触发提示\" onkeyup=\"showAutocomplete(this, globalVariablesTempVars, 'params')\" onblur=\"hideAutocomplete(this)\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_params_edit_row(this)\" style=\"margin-left: 5px;\">+</button>\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_params_edit_row(this)\">-</button>\
                          </div>"
 
 
 headInputs = 1
-headInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
+headInput_innerHtml = "<div class=\"var-value-wrapper\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"head_key\" name=\"head_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
-                            <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
+                            <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control autocomplete-input\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"输入${触发提示\" onkeyup=\"showAutocomplete(this, globalHeaderVars, 'head')\" onblur=\"hideAutocomplete(this)\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_head_add_row(this)\" style=\"margin-left: 5px;\">+</button>\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_head_add_row(this)\">-</button>\
                          </div>"
 
 
 headEditInputs = 0
-headEditInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
+headEditInput_innerHtml = "<div class=\"var-value-wrapper\" style=\"margin-bottom: 5px; display: flex; align-items: center;\">\
                             <input id=\"head_key\" name=\"head_key\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Key\"></input>\
-                            <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"Value\"></input>\
+                            <input id=\"head_value\" name=\"head_value\" type=\"text\" class=\"form-control autocomplete-input\" style=\"width:260px;font-size: 12px;text-align: center\" placeholder=\"输入${触发提示\" onkeyup=\"showAutocomplete(this, globalHeaderVars, 'head')\" onblur=\"hideAutocomplete(this)\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"add_head_edit_row(this)\" style=\"margin-left: 5px;\">+</button>\
                             <button type=\"button\" class=\"btn btn-default btn-sm\" onclick=\"del_head_edit_row(this)\">-</button>\
                          </div>"
@@ -419,30 +412,31 @@ resEditInput_innerHtml = "<div class=\"input-group\">\
                                         </td>\
                                     </div>"
 
-         window.onload = function(){
-             if(loginVerify() == 200){
-             }
-             showRequestTab()
-             setSelect()
-             highlightJSON('formated_dict', 'formated_dict_highlight');
-             var fd = document.getElementById('formated_dict');
-             if(fd) {
-                 fd.addEventListener('input', function(){ highlightJSON('formated_dict', 'formated_dict_highlight'); syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
-                 fd.addEventListener('scroll', function(){ syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
-             }
-             var fdc = document.getElementById('formated_dict_copy');
-             if(fdc) {
-                 highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
-                 fdc.addEventListener('input', function(){ highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy'); syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
-                 fdc.addEventListener('scroll', function(){ syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+function testcasePageInit(){
+             if(typeof loginVerify === 'function') { if(loginVerify() == 200){} }
+             if(typeof showRequestTab === 'function') showRequestTab();
+             if(typeof setSelect === 'function') setSelect();
+             if(typeof highlightJSON === 'function') {
+                 highlightJSON('formated_dict', 'formated_dict_highlight');
+                 var fd = document.getElementById('formated_dict');
+                 if(fd) {
+                     fd.addEventListener('input', function(){ highlightJSON('formated_dict', 'formated_dict_highlight'); syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+                     fd.addEventListener('scroll', function(){ syncJSONScroll('formated_dict', 'formated_dict_highlight'); });
+                 }
+                 var fdc = document.getElementById('formated_dict_copy');
+                 if(fdc) {
+                     highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
+                     fdc.addEventListener('input', function(){ highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy'); syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+                     fdc.addEventListener('scroll', function(){ syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
+                 }
              }
              setTimeout(function(){
-                 showParams();
-                 showHead();
-                 showAuth();
-                 initRequestBody();
+                 if(typeof showParams === 'function') showParams();
+                 if(typeof showHead === 'function') showHead();
+                 if(typeof showAuth === 'function') showAuth();
+                 if(typeof initRequestBody === 'function') initRequestBody();
              }, 100);
-        }
+}
 
         function initRequestBody() {
             var formatedDict = document.getElementById('formated_dict');

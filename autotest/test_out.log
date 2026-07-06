@@ -1,15 +1,2 @@
-【接口名称】: 接口用例
+【接口名称】: 
 【请求方式】: POST
-【关联参数】： {token_Autotestplat} 在响应数据中未匹配到，请检测前置接口关键字配置，以及Redis是否已启动
-【请求URL】：http://127.0.0.1:8000/autotest/user/getTableData/
-【请求head】：{"Accept": "", "Content-Type": "application/json;charset=utf-8", "Cookie": "", "token": "error : token value is not found"}
-【请求参数】：{}
-【Cookies】：
-
-【响应状态码】：200    OK
-【响应数据】：{"data": [[2, "pbkdf2_sha256$600000$WhInC31VDSJr8JUjDSdqO5$qaJ2068Pb/1O6ei+WuVJyxAMQ96IXC63UO5BkTZ1ul0=", "2025-08-25T13:14:34.140Z", 0, "sen", "1", "Autotestplat", "13711112221", 1, 1, "2023-10-04T03:24:35Z"], [4, "pbkdf2_sha256$870000$tx6WqzYUCxluviFrfLDm6v$QXsXSFgkSK0l/EDpizONdaR5GMMjuk5n3hWGGHMIvmo=", "2025-03-15T11:35:39.485Z", 0, "test", "", "Autotestplat", "13800001111", 1, 1, "2023-10-13T06:23:00Z"], [7, "pbkdf2_sha256$600000$Wue2Uvnw0zswx4kIb1DhOp$wA7QzkBxstC1SH8bfZMqVikWFXdpQoVj3MF8gaf+LgI=", "2026-07-05T06:31:04.263Z", 1, "root", "4", "ChatGPT", "13822223333", 1, 1, "2023-11-06T00:00:00Z"], [8, "pbkdf2_sha256$600000$2B4kb6wrPTHLz6qfaAfZ4h$kL+eGOaDnBjUWJni/SmwElO975u8utYs82ajVnvYzWw=", "2026-03-01T10:56:58.609Z", 1, "admin", "", "SenTest", "13822223333", 1, 1, "2023-11-06T00:00:00Z"]]}
-【响应时间】：0.015216 秒
-
-【断言】： 
-【测试结果】： 测试通过
-

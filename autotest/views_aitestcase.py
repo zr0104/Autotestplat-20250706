@@ -62,19 +62,13 @@ def loadAiTestcaseTable(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        
-        product_id_value = item[5]
-        if product_id_value is None or product_id_value == '':
+        if (item[5] == None or item[5] == ''):
             count = 0
         else:
-            try:
-                count = tmp.count(int(product_id_value))
-            except (ValueError, TypeError):
-                count = 0
-        
+            count = tmp.count(int(item[5]))
         if count > 0:
             try:
-                product_name = AutotestplatProduct.objects.filter(id=int(product_id_value)).first().product_name
+                product_name = AutotestplatProduct.objects.filter(id=int(item[5])).first().product_name
                 item_list = list(item)
                 item_list[5] = product_name
                 item = tuple(item_list)

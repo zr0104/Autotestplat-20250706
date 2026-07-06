@@ -59,7 +59,7 @@ def loadWebTestcaseTable(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None):
+        if (item[5] == None or item[5] == ''):
             count = 0
         else:
             count = tmp.count(int(item[5]))
@@ -367,8 +367,16 @@ def testcase_template_selenium(user_product_id,web_testcase_code):
     time.sleep(1)
     print("autotest case %s start..." % web_testcase_code)
     print("autotest product_id %s start..." % user_product_id )
-    chrome_driver_path=r""+current_dir+"\chromedriver.exe"
-    driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
+    try:
+        from webdriver_manager.chrome import ChromeDriverManager
+        
+        chrome_driver_path = ChromeDriverManager().install()
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    except ImportError:
+        chrome_driver_path=r""+current_dir+"\chromedriver.exe"
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
     if(web_testcase_code==''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(user_product_id) + " ORDER BY web_testcase_code_order ASC "
         caseResultInit(user_product_id, '未执行')
@@ -472,8 +480,16 @@ def testcase_template_cypress(user_product_id,web_testcase_code):
     time.sleep(1)
     print("autotest case %s start..." % web_testcase_code)
     print("autotest product_id %s start..." % user_product_id)
-    chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
-    driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
+    try:
+        from webdriver_manager.chrome import ChromeDriverManager
+        
+        chrome_driver_path = ChromeDriverManager().install()
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    except ImportError:
+        chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
     if (web_testcase_code == ''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(
             user_product_id) + " ORDER BY web_testcase_code_order ASC "
@@ -581,8 +597,16 @@ def testcase_template_playwright(user_product_id,web_testcase_code):
     time.sleep(1)
     print("autotest case %s start..." % web_testcase_code)
     print("autotest product_id %s start..." % user_product_id)
-    chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
-    driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
+    try:
+        from webdriver_manager.chrome import ChromeDriverManager
+        
+        chrome_driver_path = ChromeDriverManager().install()
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    except ImportError:
+        chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
+        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+    
     if (web_testcase_code == ''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(
             user_product_id) + " ORDER BY web_testcase_code_order ASC "

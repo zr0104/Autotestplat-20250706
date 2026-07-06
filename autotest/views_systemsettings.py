@@ -79,7 +79,7 @@ def loadSystemSettings(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[7] == None):
+        if (item[7] == None or item[7] == ''):
             count = 0
         else:
             count = tmp.count(int(item[7]))

@@ -20,13 +20,50 @@ Auther:：Sen;  Version：Autotestplat-V2.7
         .json-number { color: #0000FF; }
         .json-boolean { color: #800080; font-weight: bold; }
         .json-null { color: #800080; font-weight: bold; }
+        
+        /* 自动补全提示样式 */
+        .var-value-wrapper {
+            position: relative;
+        }
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .autocomplete-item:hover {
+            background-color: #e3f2fd;
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-name {
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .autocomplete-type {
+            font-size: 11px;
+            color: #999;
+            float: right;
+        }
     </style>
     <script>
          window.onload = function(){
-             if(loginVerify() == 200){
-             }
-             showRequestTab()
-             setSelect()
+             if(typeof loginVerify === 'function') { if(loginVerify() == 200){} }
+             if(typeof setSelect === 'function') setSelect();
              highlightJSON('formated_dict', 'formated_dict_highlight');
              var fd = document.getElementById('formated_dict');
              if(fd) {
@@ -40,9 +77,10 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                  fdc.addEventListener('scroll', function(){ syncJSONScroll('formated_dict_copy', 'formated_dict_highlight_copy'); });
              }
              setTimeout(function(){
-                 showParams();
-                 showHead();
-                 showAuth();
+                 if(typeof showParams === 'function') showParams();
+                 if(typeof showHead === 'function') showHead();
+                 if(typeof showAuth === 'function') showAuth();
+                 if(typeof initRequestBody === 'function') initRequestBody();
              }, 100);
         }
 
@@ -218,7 +256,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
             <br>
 
         <div class="row">
-        <div class="col-md-11" style="margin-left: 10px">
+        <div class="col-md-11 tab-content" style="margin-left: 10px">
             <ul id="requesttab" class="nav nav-tabs">
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
@@ -228,7 +266,8 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#match" data-toggle="tab">正则表达式 </a></li>
             </ul>
 
-            <div id="head" name="head" class="tab-content" style="display:none;">
+            <div class="tab-content">
+                <div id="head" name="head" class="tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
@@ -238,28 +277,34 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 </div>
             </div>
 
-            <div id="auth" name="auth" class="tab-content" style="display:none;">
+            <div id="auth" name="auth" class="tab-content tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input class="authvalues" id="authvalues" style="display: none" value="{{ head }}"></input>
+                            <input id="authvalues" style="display: none" value=""></input>
+                        </div>
+                        <div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">
+                            <input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="token"></input>
+                            <input id="auth_value" name="auth_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size: 12px;text-align: center" placeholder="输入${触发提示" onkeyup="showAutocomplete(this, globalAuthVars, 'auth')" onblur="hideAutocomplete(this)">
+                            <button type="button" class="btn btn-default btn-sm" disabled style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="requestbody" class="tab-content">
+            <div id="requestbody" class="tab-content tab-pane active">
                <div class="row">
                    <div class="col-md-10">
-                       <div style="position:relative;">
+                       <div style="position:relative;" class="var-value-wrapper">
                         <pre id="formated_dict_highlight_copy" style="position:absolute;top:0;left:0;right:0;bottom:0;margin:0;padding:6px 12px;overflow:hidden;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;background:#fbfbfb;border:1px solid #e0e0e0;border-radius:4px;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;z-index:1;color:#080808;"></pre>
-                        <textarea class="formated_dict" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}'>{{ para_str|default_if_none:"" }}</textarea>
+                        <textarea class="formated_dict autocomplete-input" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}' onkeyup="showRequestBodyAutocomplete(this)" onblur="hideRequestBodyAutocomplete()">{{ para_str|default_if_none:"" }}</textarea>
                        </div>
                    </div>
                 </div>
             </div>
 
-            <div id="params" name="params" class="tab-content" style="display:none;">
+            <div id="params" name="params" class="tab-content tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
@@ -269,23 +314,22 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 </div>
             </div>
 
-            <div id="assert" name="assert" class="tab-content" style="display: none">
-                <div class="col-md-6">
-                       <div class="col-md-12">
-                            <span style="font-size: 12px;margin-left: 225px;color: gray"> &nbsp;匹配内容</span>
+            <div id="assert" name="assert" class="tab-content tab-pane">
+                <div class="col-md-4">
+                       <div class="col-md-12 var-value-wrapper">
                             <div class="input-group">
-                                <input id="assert_keywords_old" name="assert_keywords_old" type="text" class="form-control"  style="width: 520px;font-size: 12px;text-align: center" placeholder="" value="{{ rec1.assert_keywords_old }}"></input>
+                                <input type="text" class="form-control autocomplete-input" id="assert_keywords_old" name="assert_keywords_old" style="width: 520px;font-size: 12px;text-align: center;" placeholder="输入${触发提示" value="{{ rec1.assert_keywords_old|default:'' }}" onkeyup="showAutocomplete(this, globalValidateVars, 'validate')" onblur="hideAutocomplete(this)">
                             </div>
                         </div>
                 </div>
             </div>
 
-            <div id="match" name="match" class="tab-content" style="display: none">
+            <div id="match" name="match" class="tab-content tab-pane">
                 <div class="col-md-11">
                 <div class="table-responsive" style="margin-left: 10px">
                         <thead>
                         <tr>
-                            <span style="margin-left: 40px;font-size: 12px;color: gray">描述</span>
+                           <span style="margin-left: 40px;font-size: 12px;color: gray">描述</span>
                             <span style="margin-left: 75px;font-size: 12px;color: gray">关键字</span>
                             <span style="margin-left: 65px;font-size: 12px;color: gray">左边界</span>
                             <span style="margin-left: 65px;font-size: 12px;color: grey">右边界</span>
@@ -508,7 +552,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
 
 
         <div class="row">
-        <div class="col-md-11" style="margin-left: 10px">
+        <div class="col-md-11 tab-content" style="margin-left: 10px">
             <ul id="requesttab" class="nav nav-tabs">
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#head" data-toggle="tab">头信息 </a></li>
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#auth" data-toggle="tab">认证 </a></li>
@@ -518,7 +562,8 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 <li style="text-align: center;font-size: 12px"><a style="color: black" href="#match" data-toggle="tab">正则表达式 </a></li>
             </ul>
 
-            <div id="head" name="head" class="tab-content" style="display:none;">
+            <div class="tab-content">
+                <div id="head" name="head" class="tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
@@ -528,29 +573,35 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 </div>
             </div>
 
-            <div id="auth" name="auth" class="tab-content" style="display:none;">
+            <div id="auth" name="auth" class="tab-content tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
-                            <input class="authvalues" id="authvalues" style="display: none" value="{{ head }}"></input>
+                            <input id="authvalues" style="display: none" value=""></input>
+                        </div>
+                        <div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">
+                            <input id="auth_key" name="auth_key" type="text" class="form-control" style="width:260px;font-size: 12px;text-align: center" placeholder="Key" value="token"></input>
+                            <input id="auth_value" name="auth_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size: 12px;text-align: center" placeholder="输入${触发提示" onkeyup="showAutocomplete(this, globalAuthVars, 'auth')" onblur="hideAutocomplete(this)">
+                            <button type="button" class="btn btn-default btn-sm" disabled style="margin-left: 5px;">+</button>
+                            <button type="button" class="btn btn-default btn-sm" disabled>-</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="requestbody" class="tab-content" >
+            <div id="requestbody" class="tab-content tab-pane active" >
                <div class="row">
                    <div class="col-md-10">
-                       <div style="position:relative;">
+                       <div style="position:relative;" class="var-value-wrapper">
                         <pre id="formated_dict_highlight_copy" style="position:absolute;top:0;left:0;right:0;bottom:0;margin:0;padding:6px 12px;overflow:hidden;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;background:#fbfbfb;border:1px solid #e0e0e0;border-radius:4px;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;z-index:1;color:#080808;"></pre>
-                        <textarea class="formated_dict" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}'>{{ para_str|default_if_none:"" }}</textarea>
+                        <textarea class="formated_dict autocomplete-input" id="formated_dict_copy" name="formated_dict" rows="5" style="width:925px;position:relative;z-index:2;background:transparent;color:transparent;caret-color:#080808;resize:vertical;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;line-height:1.5;padding:6px 12px;border:1px solid #e0e0e0;border-radius:4px;white-space:pre;overflow:auto;" placeholder='请输入JSON格式的请求体，例如：&#10;{&#10;    "key": "value",&#10;    "data": {&#10;        "field1": "value1",&#10;        "field2": "value2"&#10;    }&#10;}' onkeyup="showRequestBodyAutocomplete(this)" onblur="hideRequestBodyAutocomplete()">{{ para_str|default_if_none:"" }}</textarea>
                        </div>
                    </div>
                 </div>
             </div>
 
 
-            <div id="params" name="params" class="tab-content" style="display:none;">
+            <div id="params" name="params" class="tab-content tab-pane">
                 <div class="row">
                     <div class="col-md-10">
                         <div class="input-group">
@@ -560,18 +611,17 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                 </div>
             </div>
 
-            <div id="assert" name="assert" class="tab-content" style="display: none">
-                <div class="col-md-6">
-                       <div class="col-md-12">
-                            <span style="font-size: 12px;margin-left: 225px;color: gray">匹配内容</span>
+            <div id="assert" name="assert" class="tab-content tab-pane">
+                <div class="col-md-4">
+                        <div class="col-md-12 var-value-wrapper">
                             <div class="input-group">
-                                <input id="assert_keywords_old" name="assert_keywords_old" type="text" class="form-control"  style="width: 520px;font-size: 12px;text-align: center" placeholder="" value="{{ rec1.assert_keywords_old }}"></input>
+                                <input type="text" class="form-control autocomplete-input" id="assert_keywords_old" name="assert_keywords_old" style="width: 520px;font-size: 12px;text-align: center;" placeholder="输入${触发提示" value="{{ rec1.assert_keywords_old|default:'' }}" onkeyup="showAutocomplete(this, globalValidateVars, 'validate')" onblur="hideAutocomplete(this)">
                             </div>
                         </div>
                 </div>
             </div>
 
-            <div id="match" name="match" class="tab-content" style="display: none">
+            <div id="match" name="match" class="tab-content tab-pane">
                 <div class="col-md-11">
                 <div class="table-responsive" style="margin-left: 10px">
                         <thead>
@@ -584,12 +634,14 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                         </tr>
                         </thead>
                         {% if flag_resp == "false" %}
-                                   <div class="input-group">
-                                        <input type="text" name="resp_edit_name" class="form-control" style="width:105px;font-size: 12px;text-align: center" value="{{ rec3.name }}" placeholder="">
-                                        <input type="text" name="resp_edit_keywords" class="form-control" style="width:105px;font-size: 12px;text-align: center" value="{{ rec3.keywords }}" placeholder="">
-                                        <input type="text" name="resp_edit_left" class="form-control" style="width:105px;font-size: 12px;text-align: center" value="{{ rec3.left }}" placeholder="">
-                                        <input type="text" name="resp_edit_right" class="form-control" style="width:105px;font-size: 12px;text-align: center" value="{{ rec3.right }}" placeholder="">
-                                        <input type="text" name="resp_edit_index" class="form-control" style="width:50px;font-size: 12px;text-align: center" value="{{ rec3.index }}" placeholder="">
+                            <tr>
+                               <td style="width: 150px;text-align: center;">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="resp_edit_name" class="form-control" style="width:105px;font-size: 12px;text-align: center" placeholder="">
+                                        <input type="text" name="resp_edit_keywords" class="form-control" style="width:105px;font-size: 12px;text-align: center" placeholder="">
+                                        <input type="text" name="resp_edit_left" class="form-control" style="width:105px;font-size: 12px;text-align: center" placeholder="">
+                                        <input type="text" name="resp_edit_right" class="form-control" style="width:105px;font-size: 12px;text-align: center" placeholder="">
+                                        <input type="text" name="resp_edit_index" class="form-control" style="width:50px;font-size: 12px;text-align: center" placeholder="">
                                         <td style="width: 80px;text-align: center;">
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-default" onclick="add_res_edit_row(this)">+</button>
@@ -601,6 +653,7 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                                             </div>
                                         </td>
                                     </div>
+
                         {% else %}
                             {% for rec3 in public_list_resp %}
                                         <div class="input-group">
@@ -620,7 +673,6 @@ Auther:：Sen;  Version：Autotestplat-V2.7
                                                 </div>
                                             </td>
                                         </div>
-                                    </td>
                             {% endfor %}
                         {% endif %}
                 </div>
@@ -670,7 +722,357 @@ Auther:：Sen;  Version：Autotestplat-V2.7
 </div>
 
 <script type="text/javascript">
+    // 全局变量数组
+    var globalHeaderVars = [
+        {% for item in global_header %}
+        {name: "{{ item.header_name }}", value: "${{ item.header_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    var globalVariablesTempVars = [
+        {% for item in global_variables_temp %}
+        {name: "{{ item.var_name }}", value: "${{ item.var_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    var globalValidateVars = [
+        {% for item in global_validate %}
+        {name: "{{ item.validate_name }}", value: "${{ item.validate_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // 认证tab使用的变量数组 - 包含所有可引用的变量类型
+    var globalAuthVars = [
+        // 全局常量变量库
+        {% for item in global_variables_temp %}
+        {name: "{{ item.var_name }}", value: "${{ item.var_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% if global_variables_temp and global_header %},{% endif %}
+        // 全局Header变量库
+        {% for item in global_header %}
+        {name: "{{ item.header_name }}", value: "${{ item.header_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% if global_header and global_validate %},{% endif %}
+        // 全局断言变量库
+        {% for item in global_validate %}
+        {name: "{{ item.validate_name }}", value: "${{ item.validate_name }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // 请求Body使用的变量数组 - 包含参数、全局常量等
+    var globalRequestBodyVars = [
+        {% for item in global_variables_temp %}
+        {name: "{{ item.var_name }}", value: "${{ item.var_name }}", type: "Variables"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% if global_variables_temp and global_header %},{% endif %}
+        {% for item in global_header %}
+        {name: "{{ item.header_name }}", value: "${{ item.header_name }}", type: "Header"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        {% if global_header and global_validate %},{% endif %}
+        {% for item in global_validate %}
+        {name: "{{ item.validate_name }}", value: "${{ item.validate_name }}", type: "Validate"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // 显示自动补全列表
+    function showAutocomplete(input, varsList, tabType) {
+        var wrapper = $(input).closest('.var-value-wrapper');
+        var autocomplete = wrapper.find('.autocomplete-list');
+
+        if (!autocomplete.length) {
+            autocomplete = $('<div class="autocomplete-list"></div>');
+            wrapper.append(autocomplete);
+        }
+
+        if (varsList.length === 0) {
+            autocomplete.hide();
+            return;
+        }
+
+        // 获取当前输入值中 ${ 后的内容
+        var currentValue = $(input).val();
+        var match = currentValue.match(/\$\{([^}]*)$/);
+        
+        if (!match) {
+            autocomplete.hide();
+            return;
+        }
+
+        var searchText = match[1].toLowerCase();
+        
+        // 过滤匹配的变量
+        var filteredVars = varsList.filter(function(item) {
+            return item.name.toLowerCase().indexOf(searchText) !== -1;
+        });
+
+        if (filteredVars.length === 0) {
+            autocomplete.hide();
+            return;
+        }
+
+        // 构建提示列表HTML
+        var html = '';
+        filteredVars.forEach(function(item) {
+            var typeName = tabType === 'head' ? 'Header' : (tabType === 'params' ? 'Variables' : (tabType === 'validate' ? 'Validate' : 'Auth'));
+            html += '<div class="autocomplete-item" data-name="' + item.name + '" data-value="' + item.value + '">' +
+                '<span class="autocomplete-name">${' + item.name + '}</span>' +
+                '<span class="autocomplete-type">(' + typeName + ')</span>' +
+            '</div>';
+        });
+
+        autocomplete.html(html).show();
+
+        // 点击选择事件 - 修复：记录当前激活的输入框
+        $('.autocomplete-item').off('mousedown').on('mousedown', function(e) {
+                e.preventDefault();
+            var varName = $(this).data('name');
+            var fullValue = '${' + varName + '}';
+
+            // 关键修复：使用$(input)而不是重新查找，确保操作的是当前激活的输入框
+            var currentVal = $(input).val();
+            var startPos = currentVal.lastIndexOf('${');
+
+            if (startPos !== -1) {
+                $(input).val(currentVal.substring(0, startPos) + fullValue);
+            }
+
+            autocomplete.hide();
+            $(input).focus();
+        });
+    }
+
+    // 隐藏自动补全列表
+    function hideAutocomplete(input) {
+        var wrapper = $(input).closest('.var-value-wrapper');
+        wrapper.find('.autocomplete-list').hide();
+    }
+    
+    // 请求Body智能提示 - 支持引用参数、全局变量等
+    function showRequestBodyAutocomplete(textarea) {
+        var wrapper = $(textarea).closest('.var-value-wrapper');
+        var autocomplete = wrapper.find('.autocomplete-list');
+        
+        if (!autocomplete.length) {
+            autocomplete = $('<div class="autocomplete-list"></div>');
+            wrapper.append(autocomplete);
+        }
+        
+        // 获取当前输入值中 ${ 后的内容
+        var currentValue = $(textarea).val();
+        var match = currentValue.match(/\$\{([^}]*)$/);
+        
+        if (!match) {
+            autocomplete.hide();
+            return;
+        }
+        
+        var searchText = match[1].toLowerCase();
+        
+        // 合并所有可引用的变量：参数 + 全局变量
+        var allVars = [].concat(globalRequestBodyVars);
+        
+        // 动态获取参数tab中的参数
+        var paramKeys = document.getElementsByName('params_key');
+        var paramValues = document.getElementsByName('params_value');
+        for (var i = 0; i < paramKeys.length; i++) {
+            var key = paramKeys[i].value.trim();
+            var value = paramValues[i].value.trim();
+            if (key && value) {
+                allVars.push({name: key, value: '${' + key + '}', type: 'Params'});
+            }
+        }
+        
+        // 过滤匹配的变量
+        var filteredVars = allVars.filter(function(item) {
+            return item.name.toLowerCase().indexOf(searchText) !== -1;
+        });
+        
+        if (filteredVars.length === 0) {
+            autocomplete.hide();
+            return;
+        }
+        
+        // 构建提示列表HTML
+        var html = '';
+        filteredVars.forEach(function(item) {
+            var typeName = item.type || 'Variable';
+            html += '<div class="autocomplete-item" data-name="' + item.name + '" data-value="' + item.value + '">' +
+                '<span class="autocomplete-name">${' + item.name + '}</span>' +
+                '<span class="autocomplete-type">(' + typeName + ')</span>' +
+            '</div>';
+        });
+        
+        autocomplete.html(html).show();
+        
+        // 点击选择事件
+        $('.autocomplete-item').off('mousedown').on('mousedown', function(e) {
+                e.preventDefault();
+            var varName = $(this).data('name');
+            var fullValue = '${' + varName + '}';
+            
+            var currentVal = $(textarea).val();
+            var startPos = currentVal.lastIndexOf('${');
+            
+            if (startPos !== -1) {
+                $(textarea).val(currentVal.substring(0, startPos) + fullValue);
+                // 触发JSON高亮更新
+                if (typeof highlightJSON === 'function') {
+                    highlightJSON('formated_dict_copy', 'formated_dict_highlight_copy');
+                }
+            }
+            
+            autocomplete.hide();
+            $(textarea).focus();
+        });
+    }
+    
+    // 隐藏请求Body的自动补全列表
+    function hideRequestBodyAutocomplete() {
+        $('#requestbody .var-value-wrapper .autocomplete-list').hide();
+    }
+
+    // 点击页面其他地方关闭提示
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.var-value-wrapper').length) {
+            $('.autocomplete-list').hide();
+        }
+    });
+
+    function buildHeadRowHTML(key, value) {
+        return '<div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">' +
+            '<input name="head_key" type="text" class="form-control" style="width:260px;font-size:12px;text-align:center" placeholder="Key" value="' + key + '">' +
+            '<input name="head_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size:12px;text-align:center" placeholder="输入${触发提示" value="' + (value || '') + '" onkeyup="showAutocomplete(this, globalHeaderVars, \'head\')" onblur="hideAutocomplete(this)">' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left:5px;">+</button>' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="del_head_edit_row(this)">-</button>' +
+            '</div>';
+    }
+
+    function addDefaultHeadRowsWithSelect() {
+        var defaults = [
+            {key: 'Accept', value: ''},
+            {key: 'Content-Type', value: ''},
+            {key: 'Cookie', value: ''}
+        ];
+        var html = '';
+        for (var i = 0; i < defaults.length; i++) {
+            html += buildHeadRowHTML(defaults[i].key, defaults[i].value);
+        }
+        $('#head').find('div').last().after(html);
+    }
+
+    function showHead() {
+        var h = document.getElementById('headvalues');
+        var val = h ? h.value : '';
+        if (!val || val.trim() === '' || val.trim() === '{}') {
+            addDefaultHeadRowsWithSelect();
+            return;
+        }
+        try {
+            var headData = JSON.parse(val);
+            var keys = Object.keys(headData);
+            if (keys.length > 0) {
+                var html = '';
+                for (var i = 0; i < keys.length; i++) {
+                    html += buildHeadRowHTML(keys[i], headData[keys[i]]);
+                }
+                $('#head').find('div').last().after(html);
+            } else {
+                addDefaultHeadRowsWithSelect();
+            }
+        } catch(e) {
+            console.error('解析head失败:', e);
+            addDefaultHeadRowsWithSelect();
+        }
+    }
+
+    function buildParamsRowHTML(key, value) {
+        return '<div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">' +
+            '<input name="params_key" type="text" class="form-control" style="width:260px;font-size:12px;text-align:center" placeholder="Key" value="' + key + '">' +
+            '<input name="params_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size:12px;text-align:center" placeholder="输入${触发提示" value="' + (value || '') + '" onkeyup="showAutocomplete(this, globalVariablesTempVars, \'params\')" onblur="hideAutocomplete(this)">' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left:5px;">+</button>' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="del_params_edit_row(this)">-</button>' +
+            '</div>';
+    }
+
+    function addDefaultParamRowsWithSelect() {
+        var html = '';
+        for (var i = 0; i < 3; i++) {
+            html += buildParamsRowHTML('', '');
+        }
+        $('#params').find('div').last().after(html);
+    }
+
+    function showParams() {
+        var p = document.getElementById('paramsvalues');
+        var val = p ? p.value : '';
+        if (!val || val.trim() === '' || val.trim() === '{}') {
+            addDefaultParamRowsWithSelect();
+            return;
+        }
+        try {
+            var paramsData = JSON.parse(val);
+            var keys = Object.keys(paramsData);
+            if (keys.length > 0) {
+                var html = '';
+                for (var i = 0; i < keys.length; i++) {
+                    html += buildParamsRowHTML(keys[i], paramsData[keys[i]]);
+                }
+                $('#params').find('div').last().after(html);
+            } else {
+                addDefaultParamRowsWithSelect();
+            }
+        } catch(e) {
+            console.error('解析params失败:', e);
+            addDefaultParamRowsWithSelect();
+        }
+    }
+
+    function add_head_edit_row(e) {
+        var container = e.parentNode.parentNode.parentNode;
+        var currentRow = e.parentNode.parentNode;
+        var html = '<div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">' +
+            '<input name="head_key" type="text" class="form-control" style="width:260px;font-size:12px;text-align:center" placeholder="Key">' +
+            '<input name="head_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size:12px;text-align:center" placeholder="输入${触发提示" onkeyup="showAutocomplete(this, globalHeaderVars, \'head\')" onblur="hideAutocomplete(this)">' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="add_head_edit_row(this)" style="margin-left:5px;">+</button>' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="del_head_edit_row(this)">-</button>' +
+            '</div>';
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = html;
+        container.insertBefore(newDiv, currentRow.nextSibling);
+    }
+
+    function del_head_edit_row(e) {
+        var container = e.parentNode.parentNode.parentNode;
+        if (container.children.length <= 1) {
+            alert("至少保留一个输入框");
+            return;
+        }
+        container.removeChild(e.parentNode.parentNode);
+    }
+
+    function add_params_edit_row(e) {
+        var container = e.parentNode.parentNode.parentNode;
+        var currentRow = e.parentNode.parentNode;
+        var html = '<div class="var-value-wrapper" style="margin-bottom: 5px; display: flex; align-items: center;">' +
+            '<input name="params_key" type="text" class="form-control" style="width:260px;font-size:12px;text-align:center" placeholder="Key">' +
+            '<input name="params_value" type="text" class="form-control autocomplete-input" style="width:260px;font-size:12px;text-align:center" placeholder="输入${触发提示" onkeyup="showAutocomplete(this, globalVariablesTempVars, \'params\')" onblur="hideAutocomplete(this)">' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="add_params_edit_row(this)" style="margin-left:5px;">+</button>' +
+            '<button type="button" class="btn btn-default btn-sm" onclick="del_params_edit_row(this)">-</button>' +
+            '</div>';
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = html;
+        container.insertBefore(newDiv, currentRow.nextSibling);
+    }
+
+    function del_params_edit_row(e) {
+        var container = e.parentNode.parentNode.parentNode;
+        if (container.children.length <= 1) {
+            alert("至少保留一个输入框");
+            return;
+        }
+        container.removeChild(e.parentNode.parentNode);
+    }
+
     function start_interface_send(ele) {
+
         document.getElementById('responseTabContent').style.display = 'block';
         document.getElementById('res').style.fontWeight = 'normal';
         document.getElementById('rst').style.display = 'block';
