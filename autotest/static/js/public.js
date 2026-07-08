@@ -810,23 +810,22 @@ function del(tips="删除成功"){
 
 function searchClick(){
     var filter = $("[name=searchField]")
+    console.log('[DEBUG] searchClick - searchFields 数量:', filter.length);
+
     var filterList = []
     for(let i = 0; i < filter.length; i++){
         filterList[i] = filter[i].value
+        console.log(`[DEBUG] searchField[${i}]:`, filter[i].id || '无ID', 'value=', filter[i].value);
     }
     sessionStorage.setItem('filter', JSON.stringify(filterList))
 
-    $('#table').fadeOut(200, function() {
-        table.ajax.reload(function() {
-            $('#table').fadeIn(200);
-        }, false)
-    })
+    console.log('[DEBUG] searchClick - 准备调用 table.ajax.reload()');
 
-    var storage = table
-    for(let i = 0; i < filterList.length; i++){
-        storage = storage.column(searchableTableColumns[i]).search(filterList[i])
-    }
-    storage.draw()
+    // 直接使用 ajax.reload(true) 从服务器重新获取数据
+    // true 参数表示重置分页到第一页
+    table.ajax.reload(null, true);
+
+    console.log('[DEBUG] searchClick - table.ajax.reload() 已调用');
 }
 
 function getAndShowSearchSelectValue(){

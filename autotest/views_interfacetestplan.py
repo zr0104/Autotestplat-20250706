@@ -1465,9 +1465,14 @@ def startInterfaceTestplan(request):
 
 
 def runTestplan(request,suit_id):
-    runtask = 'api_autotest_task'+'('+str(suit_id)+')'
-    eval(runtask)
-    return HttpResponse(200)
+    try:
+        api_autotest_task.delay(suit_id)
+        return HttpResponse(200)
+    except Exception as e:
+        error_info = traceback.format_exc()
+        print(error_info)
+        return HttpResponse(f'执行失败: {str(e)}')
+
 
 def getProgress(request,suit_id):
     instance = AutotestplatTestplan.objects.filter(id=suit_id)
@@ -1491,26 +1496,42 @@ def api_autotest_task(suit_id):
         global report_id
         test_time = time.strftime("%Y-%m-%d %H:%M:%S")
         report_id = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))
+
+        print(f"========== 开始执行测试计划 ID={suit_id}, Report ID={report_id} ==========")
+
         sql = "select t3.interface_id,t2.interface_name,t2.suit_id,t2.suit_name,t2.mode,t2.url,t2.body,t2.assert_keywords_old from autotestplat_testplan t1 INNER JOIN autotestplat_testplan_interface t2 on t1.id=t2.suit_id INNER JOIN autotestplat_testplan_interface_order t3 on t2.suit_id=t3.suit_id and t2.id=t3.interface_id where t2.suit_id="+str(suit_id)+" order by t1.product_id"
         cursor = connection.cursor()
         aa = cursor.execute(sql)
         interface_list = cursor.fetchmany(aa)
+
+        print(f"找到 {len(interface_list)} 个接口")
+
+        if len(interface_list) == 0:
+            print(f"【ERROR】测试计划 ID={suit_id} 没有找到关联的接口！")
+            return
+
         run_interface_num=0
         for rec in interface_list:
             case_list = []
             case_list.append(rec)
+            print(f"正在执行接口 {rec[0]}: {rec[1]}")
             interfaceTestTask(case_list,test_time,response_time,report_id)
             run_interface_num +=1
             AutotestplatTestplan.objects.filter(id=rec[2]).update(task_progress=run_interface_num,run_time=test_time)
+
         interfacepass=AutotestplatTestplanInterfaceResult.objects.filter(report_id=report_id).filter(result=0).count()
         interfaceall=len(interface_list)
         testcase_pass_pers = '{:.0%}'.format(interfacepass / interfaceall)
         AutotestplatTestplanInterfaceResult.objects.filter(report_id=report_id).update(pass_pers=testcase_pass_pers)
+
+        print(f"========== 测试完成，通过率={testcase_pass_pers} ==========")
+
         cursor.close()
     except Exception:
         error_info = traceback.format_exc()
-        print(error_info)
+        print(f"【ERROR】测试执行失败: {error_info}")
         return HttpResponse(error_info)
+
 
 def interfaceTestTask(case_list,test_time,response_time,report_id):
     res_flags = []
