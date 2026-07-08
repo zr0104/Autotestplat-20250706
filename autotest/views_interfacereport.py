@@ -32,19 +32,40 @@ def reportView(request):
 def loadReport(request):
     username = request.session.get('user', '')
     if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        items = AutotestplatTestplanInterfaceResult.objects.all().values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id')).order_by('-date_time')
+        items = AutotestplatTestplanInterfaceResult.objects.all().values_list(
+            'report_id','product_id','product_name', 'suit_name', 'date_time',
+            'task_mode').annotate(Count('id')).order_by('-date_time')
     else:
         product_id = AuthUser.objects.filter(username=username).first().last_name
         items = []
-        result = AutotestplatTestplanInterfaceResult.objects.filter(product_id=product_id).values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id')).order_by('-date_time')
+        result = AutotestplatTestplanInterfaceResult.objects.filter(
+            product_id=product_id).values_list(
+            'report_id','product_id','product_name', 'suit_name', 'date_time',
+            'task_mode').annotate(Count('id')).order_by('-date_time')
         if result:
             items +=result
+    
     rst = []
     for item in items:
-        arr = []
-        for j in item:
-            arr.append(j)
+        report_id = item[0]
+        product_id = item[1]
+        product_name = item[2]
+        suit_name = item[3]
+        date_time = item[4]
+        task_mode = item[5]
+        
+        total_count = item[6]
+        pass_count = AutotestplatTestplanInterfaceResult.objects.filter(
+            report_id=report_id, result=0).count()
+        
+        if total_count > 0:
+            pass_pers = '{:.0%}'.format(pass_count / total_count)
+        else:
+            pass_pers = '0%'
+        
+        arr = [report_id, product_name, date_time, total_count, pass_pers]
         rst.append(arr)
+    
     realRst = {'data': rst}
     return JsonResponse(realRst)
 

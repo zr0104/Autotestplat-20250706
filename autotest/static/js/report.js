@@ -14,23 +14,21 @@ tableURL = 'report/getTableData/'
 table = 0
 tableButtonOperation = "<a href=\"#\" onclick=\"document.location.href = reportDetailRUL + report_id(this)\"><span class=\"badge badge-primary \" style=\"width: 40px;font-size: 12px\">详情</a>"+
                        "<a href=\"#\" class=\"#\" onclick=\"showDelModal(this)\"> <span class=\"badge badge-danger \" style=\"width: 40px;font-size: 12px\">删除</span> </a>"
-                       // "<button id=\"sendEmailButton\" type=\"button\" className=\"btn-primary\">发送邮件</button>"
-                       // "<a href=\"#\" class=\"#\" id=\"sendEmailLink\" onclick=\"sendEmail(this)\"> <span class=\"badge badge-success \" style=\"width: 60px;font-size: 12px\">发送邮件</span> </a>"
 tableItemsPerPage = 10
 tableColumnsData = [
  { data: 0 ,
    searchable:true,
  },
+  { data: 1,
+    searchable:true,
+  },
+  { data: 2,
+    searchable:true,
+  },
   { data: 3,
-    searchable:true,
-  },
-  { data: 4,
-    searchable:true,
-  },
-  { data: 7,
     searchable:false,
   },
-  { data: 6,
+  { data: 4,
     searchable:false,
   },
   { data: null,

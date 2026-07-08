@@ -225,13 +225,23 @@ function showUserName(str){
 }
 
 function tableDataInit(){
-    table = $('#table').DataTable({
+    var $table = $('#table');
+
+    $table.before('<div id="loading-indicator" style="text-align:center; padding:10px; background:#e6f7ff; border:1px solid #91d5ff; border-radius:4px; margin-bottom:10px; display:none;"><i class="fa fa-spinner fa-spin"></i> <span style="margin-left:5px;">数据加载中...</span></div>');
+
+    table = $table.DataTable({
         dom:'tp',
         pageLength: tableItemsPerPage,
         ajax: {
             url: appURL + tableURL,
             type: "POST",
-            data: tableSearchDataFunction
+            data: tableSearchDataFunction,
+            beforeSend: function() {
+                $('#loading-indicator').show();
+            },
+            complete: function() {
+                $('#loading-indicator').hide();
+            }
           },
         info: false,
         lengthChange: false,
@@ -806,7 +816,11 @@ function searchClick(){
     }
     sessionStorage.setItem('filter', JSON.stringify(filterList))
 
-    table.ajax.reload(null, false)
+    $('#table').fadeOut(200, function() {
+        table.ajax.reload(function() {
+            $('#table').fadeIn(200);
+        }, false)
+    })
 
     var storage = table
     for(let i = 0; i < filterList.length; i++){
