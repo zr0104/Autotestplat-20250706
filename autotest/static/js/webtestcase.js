@@ -24,7 +24,9 @@ searchableTableColumns = [1,2,3]
 
 tableURL = 'webtestcase/getTableData/'
 table = 0
-tableButtonOperation = "<a href=\"#\" class=\"#\" onclick=\"run_webtestcase_bycode(this)\"> <span class=\"badge badge-success \" style=\"width: 40px;font-size: 12px\">执行</span> </a>" +
+reportDetailRUL = '/autotest/webreport/getWebReportDetail/'
+tableButtonOperation = "<a href=\"#\" onclick=\"viewLatestReport(this)\"><span class=\"badge badge-primary \" style=\"width: 40px;font-size: 12px\">详情</a>"+
+                       "<a href=\"#\" class=\"#\" onclick=\"run_webtestcase_bycode(this)\"> <span class=\"badge badge-success \" style=\"width: 40px;font-size: 12px\">执行</span> </a>" +
                        "<a href=\"#\" class=\"#\" onclick=\"showMod(this)\"> <span class=\"badge badge-primary \" style=\"width: 40px;font-size: 12px\">修改</span> </a>" +
                        "<a href=\"#\" class=\"#\" onclick=\"showCopy(this)\"> <span class=\"badge badge-blue \" style=\"width: 40px;font-size: 12px\">复制</span> </a>" +
                        "<a href=\"#\" class=\"#\" onclick=\"showDelModal(this)\"> <span class=\"badge badge-danger \" style=\"width: 40px;font-size: 12px\">删除</span> </a>"
@@ -239,6 +241,9 @@ function showMod(ele){
             modCaseStepListDiv = document.getElementsByName("modCaseStepList")[0]
             modCaseStepListDiv.innerHTML = ""
             for (var i = 0; i < case_steps.length; i++) {
+                if(case_steps[i] === '' || case_steps[i] === undefined){
+                    continue;
+                }
                 var tmp_append = '<div class="input-group" style="margin-bottom: 15px; width: 90%;">'+
                             '<input name="modInput" id="caseStep" mod_eleName="caseStep" class="form-control" placeholder="--请输入--" value='+case_steps[i]+' style="width: 5px;font-size: 12px" disabled>'+
                             '<input name="modInput" mod_eleName_objname="caseStep_objname" class="form-control" placeholder="--请输入--" value='+objname[i]+' style="width:120px;font-size: 12px;text-align: left">'+
@@ -551,7 +556,7 @@ function run_webtestcase_bycode(e,tips="运行成功"){
   web_testcase_code = selectedRow.children[0].innerText
 
   $.ajax({
-      url: appURL + runWebTestcaseBycode+web_testcase_code,
+      url: appURL + runWebTestcaseBycode + web_testcase_code + '/',
       type: "POST",
       aysnc: false,
       data: function(dp){
@@ -566,8 +571,24 @@ function run_webtestcase_bycode(e,tips="运行成功"){
               return alert(rst)
           }
       },
-      error: (rst) =>{
-          return alert('运行有误，请检查selenium的安装配置、系统设置中Web设置等信息是否正确 !')
+      error: (xhr, textStatus, errorThrown) =>{
+          let errorMsg = '运行有误，请检查selenium的安装配置、系统设置中Web设置等信息是否正确 !'
+
+          if(xhr.responseJSON && xhr.responseJSON.error_message){
+              errorMsg = '执行失败：\n\n' + xhr.responseJSON.error_message
+          } else if(xhr.responseText){
+              try {
+                  const response = JSON.parse(xhr.responseText)
+                  if(response.error_message){
+                      errorMsg = '执行失败：\n\n' + response.error_message
+                  }
+              } catch(e) {
+                  errorMsg = '执行失败：\n\n' + xhr.responseText.substring(0, 500)
+              }
+          }
+
+          console.error('执行错误详情:', xhr)
+          return alert(errorMsg)
       },
   })
 }
@@ -967,4 +988,32 @@ function copyObjects(){
   copydataObj["copycaseStepList_stepresult"] = copycaseStepList_stepresult
   copydataObj["copycaseStepList_evelementtype"] = copycaseStepList_evelementtype
   return JSON.stringify({copydataObj})
+}
+
+function viewLatestReport(e) {
+    window.event.stopPropagation()
+    selectedRow = e.parentNode.parentNode
+    testcase_code = selectedRow.children[0].innerText
+
+    fetch('/autotest/webtestcase/getLatestReportId/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            'testcase_code': testcase_code
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.report_id) {
+            window.location.href = reportDetailRUL + data.report_id
+        } else {
+            alert('该用例暂无测试报告，请先执行用例！')
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error)
+        alert('获取报告信息失败！')
+    })
 }

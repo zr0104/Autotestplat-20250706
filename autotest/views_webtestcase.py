@@ -22,6 +22,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from django.template.context_processors import csrf
 from django.shortcuts import render
 from .models import *
@@ -122,6 +123,25 @@ def loadWebOptions(request):
         webcase_result.append(re['web_testcase_result'])
     rst = [webcase_result]
     return JsonResponse(rst, safe=False)
+
+@csrf_exempt
+def getLatestReportId(request):
+    """获取指定用例的最新报告ID"""
+    import json
+    data = json.loads(request.body)
+    testcase_code = data.get('testcase_code')
+    
+    if not testcase_code:
+        return JsonResponse({'report_id': None})
+    
+    latest_result = AutotestplatWebTestResult.objects.filter(
+        testcase_code=testcase_code
+    ).order_by('-date_time').first()
+    
+    if latest_result:
+        return JsonResponse({'report_id': latest_result.report_id})
+    else:
+        return JsonResponse({'report_id': None})
 
 @csrf_exempt
 def deleteWebtestcase(request):
@@ -329,18 +349,31 @@ def runWebtestcase(request,web_testcase_code):
         user_product_id = ''
     else:
         user_product_id = AuthUser.objects.filter(username=username).first().last_name
-    webset = AutotestplatParameter.objects.filter(type='web').filter(product_id=user_product_id)
-    if webset:
-        auto_framework=webset.first().value
-        if('selenium' in auto_framework.lower()):
-            testcase_template_selenium(user_product_id,web_testcase_code)
-        elif('cypress' in auto_framework.lower()):
-            testcase_template_cypress(user_product_id, web_testcase_code)
-        elif('playwright' in auto_framework.lower()):
-            testcase_template_playwright(user_product_id, web_testcase_code)
-    else:
-        testcase_template_selenium(user_product_id, web_testcase_code)
-    return HttpResponse("运行完成。  该用例为：" + str(web_testcase_code) + "  " + "。" + "<input style='color:light blue' type='button'' name='Submit'' value='返回查看结果'' onclick='self.location=document.referrer;' />")
+    
+    try:
+        webset = AutotestplatParameter.objects.filter(type='web').filter(product_id=user_product_id)
+        if webset:
+            auto_framework=webset.first().value
+            if('selenium' in auto_framework.lower()):
+                result = testcase_template_selenium(user_product_id,web_testcase_code)
+            elif('cypress' in auto_framework.lower()):
+                result = testcase_template_cypress(user_product_id, web_testcase_code)
+            elif('playwright' in auto_framework.lower()):
+                result = testcase_template_playwright(user_product_id, web_testcase_code)
+        else:
+            result = testcase_template_selenium(user_product_id, web_testcase_code)
+        
+        if result and isinstance(result, str):
+            if '错误' in result or '失败' in result or 'fail' in result.lower() or 'exception' in result.lower():
+                return JsonResponse({'status': 'error', 'message': result}, status=500)
+        
+        return HttpResponse("运行完成。  该用例为：" + str(web_testcase_code) + "  " + "。" + "<input style='color:light blue' type='button'' name='Submit'' value='返回查看结果'' onclick='self.location=document.referrer;' />")
+    
+    except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n\n{traceback.format_exc()}"
+        print(f"执行测试用例失败: {error_detail}")
+        return JsonResponse({'status': 'error', 'error_message': error_detail}, status=500)
 
 @csrf_exempt
 def runAllTestcase(request):
@@ -368,112 +401,200 @@ def testcase_template_selenium(user_product_id,web_testcase_code):
     print("autotest case %s start..." % web_testcase_code)
     print("autotest product_id %s start..." % user_product_id )
     
+    error_messages = []
+    
     try:
         from webdriver_manager.chrome import ChromeDriverManager
         
         chrome_driver_path = ChromeDriverManager().install()
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
     except ImportError:
         chrome_driver_path=r""+current_dir+"\chromedriver.exe"
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
+    except Exception as e:
+        error_msg = f"ChromeDriver初始化失败: {str(e)}"
+        print(error_msg)
+        return error_msg
+    
+    report_id = str(int(time.time()))
     
     if(web_testcase_code==''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(user_product_id) + " ORDER BY web_testcase_code_order ASC "
         caseResultInit(user_product_id, '未执行')
     else:
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.web_testcase_code=" + str(web_testcase_code) + " ORDER BY id ASC "
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',charset='utf8')
-    cursor = coon.cursor()
-    aa = cursor.execute(sql)
-    info = cursor.fetchmany(aa)
-    for ii in info:
-        case_list = []
-        case_list.append(ii)
-        for case in case_list:
+    
+    coon = None
+    cursor = None
+    
+    try:
+        coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',charset='utf8')
+        cursor = coon.cursor()
+        aa = cursor.execute(sql)
+        info = cursor.fetchmany(aa)
+        step_number = 0
+        
+        current_testcase_code = None
+        
+        for ii in info:
+            case_list = []
+            case_list.append(ii)
+            for case in case_list:
+                try:
+                    case_id = case[0]
+                    findmethod = case[1]
+                    evelement = case[2]
+                    optmethod = case[3]
+                    testdata = case[4]
+                    assertdata = case[5]
+                    stepresult_before = case[6]
+                    current_testcase_code = case[7]
+                    step_number += 1
+                except Exception as e:
+                    error_msg = f'测试用例格式不正确！{str(e)}'
+                    print(error_msg)
+                    return error_msg
+                
+                step_start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                step_response_time = '0'
+                error_log = ''
+                
+                if optmethod == 'web_start':
+                    try:
+                        driver.implicitly_wait(10)
+                        driver.maximize_window()
+                        driver.get(evelement + testdata)
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'click' and findmethod == 'find_element_by_id':
+                    try:
+                        driver.find_element(By.ID, evelement).click()
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.ID:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'click' and findmethod == 'find_element_by_name':
+                    try:
+                        driver.find_element(By.NAME, evelement).click()
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.NAME:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'click' and findmethod == 'find_element_by_class':
+                    try:
+                        driver.find_element(By.CLASS_NAME, evelement).click()
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.CLASS_NAME:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'click' and findmethod == 'find_element_by_xpath':
+                    try:
+                        driver.find_element(By.XPATH, evelement).click()
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.XPATH:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'sendkey' and findmethod == 'find_element_by_id':
+                    try:
+                        driver.find_element(By.ID, evelement).clear()
+                        driver.find_element(By.ID, evelement).send_keys(testdata)
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.ID:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'sendkey' and findmethod == 'find_element_by_name':
+                    try:
+                        driver.find_element(By.NAME, evelement).clear()
+                        driver.find_element(By.NAME, evelement).send_keys(testdata)
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.NAME:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'sendkey' and findmethod == 'find_element_by_xpath':
+                    try:
+                        driver.find_element(By.XPATH, evelement).clear()
+                        driver.find_element(By.XPATH, evelement).send_keys(testdata)
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod} By.XPATH:{evelement}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                elif optmethod == 'sleep':
+                    try:
+                        sleep(int(testdata))
+                        casestepResult(case_id, 'pass')
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                    except Exception as e:
+                        casestepResult(case_id, 'fail')
+                        error_log = str(e)
+                        error_messages.append(f"步骤{step_number} [{optmethod}] 失败: {error_log}")
+                        step_response_time = str(round(time.time() - time.mktime(time.strptime(step_start_time, '%Y-%m-%d %H:%M:%S')), 3))
+                
+                step_end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                
+                saveWebStepResult(report_id, user_product_id, current_testcase_code, step_number, optmethod, findmethod, evelement, testdata, assertdata, error_log, step_response_time, step_end_time)
+            
+            if current_testcase_code:
+                stepresult_bycode = AutotestplatWebTestcase.objects.filter(web_testcase_code=current_testcase_code).values_list('web_testcase_stepresult')
+                tmp = []
+                for item in stepresult_bycode:
+                    tmp += [str(item[0])]
+                if '未执行' in tmp:
+                    caseResult(current_testcase_code, '未执行')
+                elif 'fail' in tmp:
+                    caseResult(current_testcase_code, 'failed')
+                else:
+                    caseResult(current_testcase_code, 'pass')
+        sleep(2)
+        print("autotest case %s ...end" % web_testcase_code)
+        coon.commit()
+        cursor.close()
+        coon.close()
+        driver.quit()
+        
+        return None
+        
+    except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n\n{traceback.format_exc()}"
+        print(f"执行测试用例异常: {error_detail}")
+        if coon:
             try:
-                case_id = case[0]
-                findmethod = case[1]
-                evelement = case[2]
-                optmethod = case[3]
-                testdata = case[4]
-                web_testcase_code= case[7]
-            except Exception as e:
-                return '测试用例格式不正确！%s' % e
-            if optmethod == 'web_start':
-                try:
-                    driver.implicitly_wait(10)
-                    driver.maximize_window()
-                    driver.get(evelement + testdata)
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'click' and findmethod == 'find_element_by_id':
-                try:
-                    driver.find_element_by_id(evelement).click()
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'click' and findmethod == 'find_element_by_name':
-                try:
-                    driver.find_element_by_name(evelement).click()
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'click' and findmethod == 'find_element_by_class':
-                try:
-                    driver.find_element_by_class(evelement).click()
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'click' and findmethod == 'find_element_by_xpath':
-                try:
-                    driver.find_element_by_xpath(evelement).click()
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'sendkey' and findmethod == 'find_element_by_id':
-                try:
-                    driver.find_element_by_id(evelement).clear()
-                    driver.find_element_by_id(evelement).send_keys(testdata)
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'sendkey' and findmethod == 'find_element_by_name':
-                try:
-                    driver.find_element_by_name(evelement).clear()
-                    driver.find_element_by_name(evelement).send_keys(testdata)
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'sendkey' and findmethod == 'find_element_by_xpath':
-                try:
-                    driver.find_element_by_xpath(evelement).clear()
-                    driver.find_element_by_xpath(evelement).send_keys(testdata)
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-            elif optmethod == 'sleep':
-                try:
-                    sleep(int(testdata))
-                    casestepResult(case_id, 'pass')
-                except:
-                    casestepResult(case_id, 'fail')
-        stepresult_bycode = AutotestplatWebTestcase.objects.filter(web_testcase_code=web_testcase_code).values_list('web_testcase_stepresult')
-        tmp = []
-        for item in stepresult_bycode:
-            tmp += [str(item[0])]
-        if '未执行' in tmp:
-            caseResult(web_testcase_code, '未执行')
-        elif 'fail' in tmp:
-            caseResult(web_testcase_code, 'failed')
-        else:
-            caseResult(web_testcase_code, 'pass')
-    sleep(2)
-    print("autotest case %s ...end" % web_testcase_code)
-    coon.commit()
-    cursor.close()
-    coon.close()
-    driver.quit()
+                coon.rollback()
+                cursor.close()
+                coon.close()
+            except:
+                pass
+        try:
+            driver.quit()
+        except:
+            pass
+        return f"执行过程发生异常: {error_detail}"
 
 
 def testcase_template_cypress(user_product_id,web_testcase_code):
@@ -485,10 +606,10 @@ def testcase_template_cypress(user_product_id,web_testcase_code):
         from webdriver_manager.chrome import ChromeDriverManager
         
         chrome_driver_path = ChromeDriverManager().install()
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
     except ImportError:
         chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
     
     if (web_testcase_code == ''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(
@@ -497,7 +618,7 @@ def testcase_template_cypress(user_product_id,web_testcase_code):
     else:
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.web_testcase_code=" + str(
             web_testcase_code) + " ORDER BY id ASC "
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',
+    coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',
                            charset='utf8')
     cursor = coon.cursor()
     aa = cursor.execute(sql)
@@ -525,46 +646,46 @@ def testcase_template_cypress(user_product_id,web_testcase_code):
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_id':
                 try:
-                    driver.find_element_by_id(evelement).click()
+                    driver.find_element(By.ID, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_name':
                 try:
-                    driver.find_element_by_name(evelement).click()
+                    driver.find_element(By.NAME, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_class':
                 try:
-                    driver.find_element_by_class(evelement).click()
+                    driver.find_element(By.CLASS_NAME, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_xpath':
                 try:
-                    driver.find_element_by_xpath(evelement).click()
+                    driver.find_element(By.XPATH, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_id':
                 try:
-                    driver.find_element_by_id(evelement).clear()
-                    driver.find_element_by_id(evelement).send_keys(testdata)
+                    driver.find_element(By.ID, evelement).clear()
+                    driver.find_element(By.ID, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_name':
                 try:
-                    driver.find_element_by_name(evelement).clear()
-                    driver.find_element_by_name(evelement).send_keys(testdata)
+                    driver.find_element(By.NAME, evelement).clear()
+                    driver.find_element(By.NAME, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_xpath':
                 try:
-                    driver.find_element_by_xpath(evelement).clear()
-                    driver.find_element_by_xpath(evelement).send_keys(testdata)
+                    driver.find_element(By.XPATH, evelement).clear()
+                    driver.find_element(By.XPATH, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
@@ -602,10 +723,10 @@ def testcase_template_playwright(user_product_id,web_testcase_code):
         from webdriver_manager.chrome import ChromeDriverManager
         
         chrome_driver_path = ChromeDriverManager().install()
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
     except ImportError:
         chrome_driver_path = r"" + current_dir + "\chromedriver.exe"
-        driver = webdriver.Chrome(executable_path=chrome_driver_path)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path))
     
     if (web_testcase_code == ''):
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.product_id=" + str(
@@ -614,7 +735,7 @@ def testcase_template_playwright(user_product_id,web_testcase_code):
     else:
         sql = "SELECT id,web_testcase_findmethod,web_testcase_evelement,web_testcase_optmethod,web_testcase_testdata,web_testcase_assertdata,`web_testcase_stepresult`,web_testcase_code from autotestplat_web_testcase where autotestplat_web_testcase.web_testcase_code=" + str(
             web_testcase_code) + " ORDER BY id ASC "
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',
+    coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',
                            charset='utf8')
     cursor = coon.cursor()
     aa = cursor.execute(sql)
@@ -642,46 +763,46 @@ def testcase_template_playwright(user_product_id,web_testcase_code):
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_id':
                 try:
-                    driver.find_element_by_id(evelement).click()
+                    driver.find_element(By.ID, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_name':
                 try:
-                    driver.find_element_by_name(evelement).click()
+                    driver.find_element(By.NAME, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_class':
                 try:
-                    driver.find_element_by_class(evelement).click()
+                    driver.find_element(By.CLASS_NAME, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'click' and findmethod == 'find_element_by_xpath':
                 try:
-                    driver.find_element_by_xpath(evelement).click()
+                    driver.find_element(By.XPATH, evelement).click()
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_id':
                 try:
-                    driver.find_element_by_id(evelement).clear()
-                    driver.find_element_by_id(evelement).send_keys(testdata)
+                    driver.find_element(By.ID, evelement).clear()
+                    driver.find_element(By.ID, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_name':
                 try:
-                    driver.find_element_by_name(evelement).clear()
-                    driver.find_element_by_name(evelement).send_keys(testdata)
+                    driver.find_element(By.NAME, evelement).clear()
+                    driver.find_element(By.NAME, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
             elif optmethod == 'sendkey' and findmethod == 'find_element_by_xpath':
                 try:
-                    driver.find_element_by_xpath(evelement).clear()
-                    driver.find_element_by_xpath(evelement).send_keys(testdata)
+                    driver.find_element(By.XPATH, evelement).clear()
+                    driver.find_element(By.XPATH, evelement).send_keys(testdata)
                     casestepResult(case_id, 'pass')
                 except:
                     casestepResult(case_id, 'fail')
@@ -714,7 +835,7 @@ def casestepResult(web_testcase_code, result):
     now = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     sql = "UPDATE autotestplat_web_testcase set autotestplat_web_testcase.web_testcase_stepresult=%s,autotestplat_web_testcase.run_time=%s where autotestplat_web_testcase.id=%s;"
     param = (result, now, web_testcase_code)
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',charset='utf8')
+    coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',charset='utf8')
     cursor = coon.cursor()
     cursor.execute(sql, param)
     coon.commit()
@@ -727,7 +848,7 @@ def caseResult(web_testcase_code, result):
     sql = "UPDATE autotestplat_web_testcase set autotestplat_web_testcase.web_testcase_result=%s,autotestplat_web_testcase.run_time=%s where autotestplat_web_testcase.web_testcase_code=%s;"
     param = (result, now, web_testcase_code)
     print('web autotest result is ' + result.decode())
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',charset='utf8')
+    coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',charset='utf8')
     cursor = coon.cursor()
     cursor.execute(sql, param)
     coon.commit()
@@ -740,7 +861,7 @@ def caseResultInit(user_product_id,result):
     sql = "UPDATE autotestplat_web_testcase set autotestplat_web_testcase.web_testcase_result=%s,autotestplat_web_testcase.web_testcase_stepresult=%s,autotestplat_web_testcase.run_time=%s where autotestplat_web_testcase.product_id=%s"
     param = (result, result, now, user_product_id)
     print('web autotest result init is ' + result.decode())
-    coon = pymysql.connect(user='root', passwd='test123456', db='autotestplat', port=3306, host='127.0.0.1',charset='utf8')
+    coon = pymysql.connect(user='root', passwd='Sen123456', db='autotestplatais', port=3306, host='127.0.0.1',charset='utf8')
     cursor = coon.cursor()
     cursor.execute(sql, param)
     coon.commit()
@@ -798,4 +919,35 @@ def waitForElementByXpath(evelement, Driver):
         print(result);
     finally:
         return result;
+
+def saveWebStepResult(report_id, product_id, testcase_code, step_number, operation, find_method, element_value, test_data, assert_data, error_log, response_time, execution_time):
+    """保存Web测试步骤结果到报告表"""
+    try:
+        if product_id == '' or product_id is None:
+            product_id = 0
+        
+        product_name = AutotestplatProduct.objects.filter(id=product_id).first().product_name if product_id else ''
+        testcase_name = AutotestplatWebTestcase.objects.filter(web_testcase_code=testcase_code).first().web_testcase_name if testcase_code else ''
+        
+        AutotestplatWebTestResult.objects.create(
+            report_id=report_id,
+            product_id=product_id if product_id else None,
+            product_name=product_name,
+            testcase_code=testcase_code,
+            testcase_name=testcase_name,
+            step_number=step_number,
+            step_name=operation,
+            find_method=find_method,
+            element_value=element_value,
+            operation=operation,
+            test_data=test_data,
+            assert_data=assert_data,
+            result='fail' if error_log else 'pass',
+            error_log=error_log,
+            execution_time=execution_time,
+            response_time=response_time,
+            date_time=execution_time
+        )
+    except Exception as e:
+        print(f"保存Web测试步骤结果失败: {e}")
 

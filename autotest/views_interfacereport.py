@@ -32,11 +32,11 @@ def reportView(request):
 def loadReport(request):
     username = request.session.get('user', '')
     if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        items = AutotestplatTestplanInterfaceResult.objects.all().values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id'))
+        items = AutotestplatTestplanInterfaceResult.objects.all().values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id')).order_by('-date_time')
     else:
         product_id = AuthUser.objects.filter(username=username).first().last_name
         items = []
-        result = AutotestplatTestplanInterfaceResult.objects.filter(product_id=product_id).values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id'))
+        result = AutotestplatTestplanInterfaceResult.objects.filter(product_id=product_id).values_list('report_id','product_id','product_name', 'suit_name', 'date_time','task_mode','pass_pers').annotate(Count('id')).order_by('-date_time')
         if result:
             items +=result
     rst = []

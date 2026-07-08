@@ -438,6 +438,32 @@ class AutotestplatWebTestcase(models.Model):
         managed = True
         db_table = 'autotestplat_web_testcase'
 
+class AutotestplatWebTestResult(models.Model):
+    """Web UI 测试报告结果表"""
+    report_id = models.CharField(max_length=20, null=True, verbose_name='测试报告ID')
+    product_id = models.IntegerField(null=True, verbose_name='产品ID')
+    product_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='产品名称')
+    testcase_code = models.CharField(max_length=255, null=True, verbose_name='用例编号')
+    testcase_name = models.CharField(max_length=255, null=True, verbose_name='用例名称')
+    step_number = models.IntegerField(null=True, verbose_name='步骤序号')
+    step_name = models.CharField(max_length=255, null=True, verbose_name='步骤名称')
+    find_method = models.CharField(max_length=255, null=True, verbose_name='定位方式')
+    element_value = models.CharField(max_length=500, null=True, verbose_name='元素值')
+    operation = models.CharField(max_length=255, null=True, verbose_name='操作方法')
+    test_data = models.TextField(blank=True, null=True, verbose_name='测试数据')
+    assert_data = models.TextField(blank=True, null=True, verbose_name='断言数据')
+    result = models.CharField(max_length=20, null=True, verbose_name='执行结果(pass/fail/未执行)')
+    error_log = models.TextField(blank=True, null=True, verbose_name='错误日志')
+    execution_time = models.CharField(max_length=20, null=True, verbose_name='执行时间')
+    response_time = models.CharField(max_length=20, null=True, verbose_name='响应时间')
+    date_time = models.CharField(max_length=20, null=True, verbose_name='报告生成时间')
+
+    class Meta:
+        managed = True
+        db_table = 'autotestplat_web_test_result'
+        verbose_name = 'Web测试报告结果'
+        verbose_name_plural = 'Web测试报告结果'
+
 class EnvPythonFunc(models.Model):
     """环境配置 - Python自定义方法库"""
     func_id = models.AutoField(primary_key=True)

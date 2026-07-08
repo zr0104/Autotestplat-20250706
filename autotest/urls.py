@@ -16,6 +16,7 @@ from . import views_performance
 from . import views_apptestcase
 from . import views_webtestcase
 from . import views_envconfig
+from . import views_webreport
 
 urlpatterns = [
     path('index/', views_index.indexView, name='index'),
@@ -143,16 +144,21 @@ urlpatterns = [
     path('apptestcase/run_apptestcase/<int:app_testcase_code>', views_apptestcase.runApptestcase),
     path('apptestcase/runAllTestcase/', views_apptestcase.runAllTestcase),
     path('webtestcase/', views_webtestcase.getWebView, name='webtestcase'),
-    path('webtestcase/getSearchSelect/', views_webtestcase.loadWebOptions),
     path('webtestcase/getTableData/', views_webtestcase.loadWebTestcaseTable),
     path('webtestcase/addWebtestcase/', views_webtestcase.addWebtestcase),
     path('webtestcase/delWebtestcase/', views_webtestcase.deleteWebtestcase),
-    path('webtestcase/showModWebTestcase/', views_webtestcase.showModWebTestcase),
     path('webtestcase/modWebtestcase/', views_webtestcase.modWebtestcase),
-    path('webtestcase/showCopyWebTestcase/', views_webtestcase.showCopyWebTestcase),
     path('webtestcase/copyWebtestcase/', views_webtestcase.copyWebtestcase),
-    path('webtestcase/run_webtestcase/<int:web_testcase_code>', views_webtestcase.runWebtestcase),
+    path('webtestcase/showModWebTestcase/', views_webtestcase.showModWebTestcase),
+    path('webtestcase/showCopyWebTestcase/', views_webtestcase.showCopyWebTestcase),
+    path('webtestcase/run_webtestcase/<str:web_testcase_code>/', views_webtestcase.runWebtestcase),
     path('webtestcase/runAllTestcase/', views_webtestcase.runAllTestcase),
+    path('webtestcase/getWebOptions/', views_webtestcase.loadWebOptions),
+    path('webtestcase/getLatestReportId/', views_webtestcase.getLatestReportId),
+    path('webreport/', views_webreport.getWebReportView, name='webreport'),
+    path('webreport/getTableData/', views_webreport.loadWebReport),
+    path('webreport/getWebReportDetail/<str:report_id>/', views_webreport.getWebReportDetail, name='webreportdetail'),
+    path('webreport/del/', views_webreport.deleteWebReport),
     path('worktask/', views_worktask.worktaskView, name='worktask'),
     path('worktask/getTableData/', views_worktask.loadWroktask),
     path('worktask/add/', views_worktask.addWroktask),
