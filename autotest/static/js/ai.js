@@ -375,10 +375,14 @@ function parseMultipleTestCases(text) {
     console.log('========== 开始解析 ==========');
     console.log('原始文本前800字符:', text.substring(0, 800));
 
-    // 按 "### " 分割成多个用例块
-    const blocks = text.split(/\n\s*###\s+/).filter(block => block.trim());
+    // 先用 ### TC 或 ###TC 分割（兼容行首和行中间的情况）
+    const blocks = text.split(/(?:^|\n)\s*#{1,3}\s*TC\d+[:：]/).filter(block => block.trim());
+
+    // 同时提取每个块的标题（从分割匹配中获取）
+    const titleMatches = text.match(/(?:^|\n)\s*#{1,3}\s*(TC\d+[:：]\s*.+)/g) || [];
 
     console.log(`分割成 ${blocks.length} 个块`);
+    console.log(`提取到 ${titleMatches.length} 个标题`);
 
     for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i].trim();
@@ -396,55 +400,80 @@ function parseMultipleTestCases(text) {
         console.log(`\n--- 处理块 ${i + 1} ---`);
         console.log('前5行:', lines.slice(0, 5).join('\n'));
 
-        // 第一行是用例名称（去掉 TC编号: ）
-        let title = lines[0].trim();
-        // 去掉 "TCX: " 或 "TCX：" 前缀
-        title = title.replace(/^TC\d+[:：]\s*/, '');
-        // 去掉可能残留的 "### "
-        title = title.replace(/^#+\s*/, '');
+        // 提取用例名称：优先从 titleMatches 获取，否则从第一行提取
+        let title = '';
+        if (titleMatches[i]) {
+            title = titleMatches[i].replace(/^\s*#+\s*/, '').trim();
+            title = title.replace(/^TC\d+[:：]\s*/, '');
+        }
+        if (!title) {
+            // 从块的第一行提取（跳过 Given/When/Then/Result 等BDD关键词行）
+            for (let ti = 0; ti < lines.length; ti++) {
+                const firstLine = lines[ti].trim();
+                // 跳过 BDD 关键词行和空行
+                if (!/^\*?\s*(Given|When|Then|Result|And)\s*[:：\-]?\s*$/i.test(firstLine)
+                    && !/^\s*#+\s*/.test(firstLine)
+                    && firstLine.length > 0) {
+                    title = firstLine.replace(/^TC\d+[:：]\s*/, '').replace(/^#+\s*/, '');
+                    break;
+                }
+            }
+        }
+        if (!title) {
+            title = '未命名用例';
+        }
 
         console.log('用例名称:', title);
 
-        // 解析步骤（Given/When/Then）
+        // 解析步骤（Given/When/Then/Result）
         const steps = [];
         let givenLines = [];
         let whenLines = [];
         let thenLines = [];
 
-        for (let j = 1; j < lines.length; j++) {
+        for (let j = 0; j < lines.length; j++) {
             const line = lines[j].trim();
 
+            // 如果行中间包含 ### TC，说明混入了下一个用例的标题，截断处理
+            const tcSplit = line.split(/\s*#{1,3}\s*TC\d+[:：]/);
+            const cleanLine = tcSplit[0].trim();
+
             // 匹配 Given
-            if (/^Given[:：]?/.test(line)) {
-                const content = line.replace(/^Given[:：]?\s*/, '');
-                givenLines.push(content);
+            if (/^\*?\s*Given\s*[:：\-]?\s*/i.test(cleanLine)) {
+                const content = cleanLine.replace(/^\*?\s*Given\s*[:：\-]?\s*/i, '');
+                if (content.trim()) {
+                    givenLines.push(content.trim());
+                }
             }
             // 匹配 When
-            else if (/^When[:：]?/.test(line)) {
-                const content = line.replace(/^When[:：]?\s*/, '');
-                whenLines.push(content);
+            else if (/^\*?\s*When\s*[:：\-]?\s*/i.test(cleanLine)) {
+                const content = cleanLine.replace(/^\*?\s*When\s*[:：\-]?\s*/i, '');
+                if (content.trim()) {
+                    whenLines.push(content.trim());
+                }
             }
-            // 匹配 Then
-            else if (/^Then[:：]?/.test(line)) {
-                const content = line.replace(/^Then[:：]?\s*/, '');
-                thenLines.push(content);
+            // 匹配 Then 或 Result（AI 可能用 Result 代替 Then）
+            else if (/^\*?\s*(Then|Result)\s*[:：\-]?\s*/i.test(cleanLine)) {
+                const content = cleanLine.replace(/^\*?\s*(Then|Result)\s*[:：\-]?\s*/i, '');
+                if (content.trim()) {
+                    thenLines.push(content.trim());
+                }
             }
             // 匹配 And（根据上下文归类）
-            else if (/^-?\s*And[:：]?/.test(line)) {
-                const content = line.replace(/^-?\s*And[:：]?\s*/, '');
+            else if (/^\*?\s*And\s*[:：\-]?\s*/i.test(cleanLine)) {
+                const content = cleanLine.replace(/^\*?\s*And\s*[:：\-]?\s*/i, '');
 
-                // 如果已经有 When 但没有 Then，归为 When
-                if (whenLines.length > 0 && thenLines.length === 0) {
-                    whenLines.push(content);
-                }
-                // 否则归为 Then
-                else {
-                    thenLines.push(content);
+                if (content.trim()) {
+                    if (whenLines.length > 0 && thenLines.length === 0) {
+                        whenLines.push(content.trim());
+                    } else {
+                        thenLines.push(content.trim());
+                    }
                 }
             }
         }
 
-        console.log(`  Given: ${givenLines.length}, When: ${whenLines.length}, Then: ${thenLines.length}`);
+        console.log(`  Given: ${givenLines.length}, When: ${whenLines.length}, Then/Result: ${thenLines.length}`);
 
         // 构建步骤：将 Given、When、Then 组合成步骤对
         // 策略：每个 When 对应一个步骤
@@ -470,13 +499,18 @@ function parseMultipleTestCases(text) {
                 if (thenLines.length > k) {
                     expectedText = thenLines[k];
                 } else if (thenLines.length > 0) {
-                    // 如果没有对应的 Then，使用最后一个
                     expectedText = thenLines[thenLines.length - 1];
                 }
 
+                // 过滤空步骤
+                if (!stepText.trim() && !expectedText.trim()) {
+                    console.log(`  跳过空步骤 ${k + 1}`);
+                    continue;
+                }
+
                 steps.push({
-                    step: stepText,
-                    expected: expectedText
+                    step: stepText.trim(),
+                    expected: expectedText.trim()
                 });
 
                 console.log(`  步骤 ${k + 1}:`, stepText.substring(0, 50));
@@ -491,10 +525,14 @@ function parseMultipleTestCases(text) {
                 let stepText = givenLines[k] || '';
                 let expectedText = thenLines[k] || '';
 
+                if (!stepText.trim() && !expectedText.trim()) {
+                    continue;
+                }
+
                 if (stepText || expectedText) {
                     steps.push({
-                        step: stepText,
-                        expected: expectedText
+                        step: stepText.trim(),
+                        expected: expectedText.trim()
                     });
 
                     console.log(`  步骤 ${k + 1}:`, stepText ? stepText.substring(0, 50) : '(无)');
@@ -842,17 +880,48 @@ function batchSaveTestCases(cases, requirementsId, btn) {
         return;
     }
 
-    // 禁用确认按钮，防止重复点击
-    const confirmBtn = document.querySelector('.btn-success[onclick*="confirmSaveTestCases"]');
+    // 修复：通过文本内容查找按钮（动态创建的按钮没有 onclick 属性）
+    const allButtons = document.querySelectorAll('button');
+    let confirmBtn = null;
+    for (let i = 0; i < allButtons.length; i++) {
+        if (allButtons[i].textContent.trim() === '确认保存' || allButtons[i].textContent.trim() === '保存中...') {
+            confirmBtn = allButtons[i];
+            break;
+        }
+    }
     if (confirmBtn) {
         confirmBtn.disabled = true;
         confirmBtn.textContent = '保存中...';
     }
 
+    let hasValidCase = false;
+
     cases.forEach((testCase, index) => {
+        // 过滤空步骤
+        const validSteps = testCase.steps.filter(function(s) {
+            return s.step && s.step.trim() && s.expected && s.expected.trim();
+        });
+
+        if (validSteps.length === 0) {
+            console.warn(`用例 ${index + 1} "${testCase.title}" 无有效步骤，跳过保存`);
+            savedCount++;
+            if (savedCount === total) {
+                if (!hasValidCase) {
+                    alert('所有用例的步骤内容均为空，无法保存！请检查 AI 生成的格式。');
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = '确认保存';
+                }
+            }
+            return;
+        }
+
+        hasValidCase = true;
+
         // 构建步骤字符串
         let stepsText = '';
-        testCase.steps.forEach((step, stepIndex) => {
+        validSteps.forEach((step, stepIndex) => {
             stepsText += `步骤${stepIndex + 1}: ${step.step}\n`;
             stepsText += `预期结果${stepIndex + 1}: ${step.expected}\n\n`;
         });
@@ -863,7 +932,7 @@ function batchSaveTestCases(cases, requirementsId, btn) {
         console.log(`\n--- 准备保存用例 ${index + 1}/${total} ---`);
         console.log('用例编码:', testcaseCode);
         console.log('用例名称:', testCase.title);
-        console.log('步骤数:', testCase.steps.length);
+        console.log('有效步骤数:', validSteps.length);
         console.log('步骤文本:', stepsText);
 
         // 发送保存请求到新接口
@@ -882,17 +951,18 @@ function batchSaveTestCases(cases, requirementsId, btn) {
             },
             success: function(response) {
                 console.log(`用例 ${index + 1} 响应:`, response);
-                savedCount++;
+                if (response === '200') {
+                    savedCount++;
+                } else {
+                    console.error(`用例 ${index + 1} 保存返回异常:`, response);
+                }
 
                 if (savedCount === total) {
                     alert(`成功保存 ${savedCount} 个测试用例到【AI测试用例】临时表！`);
                     closeSaveDialog();
 
-                    // 不再自动刷新页面，避免触发 AI 重新生成
-                    // 用户可以手动刷新或点击导航栏查看
                     console.log('保存完成，请手动刷新页面或点击导航栏查看结果');
 
-                    // 恢复按钮状态
                     if (confirmBtn) {
                         confirmBtn.disabled = false;
                         confirmBtn.textContent = '确认保存';
@@ -905,7 +975,6 @@ function batchSaveTestCases(cases, requirementsId, btn) {
                 console.error('响应文本:', xhr.responseText);
                 alert(`保存失败：${xhr.responseText}`);
 
-                // 恢复按钮状态
                 if (confirmBtn) {
                     confirmBtn.disabled = false;
                     confirmBtn.textContent = '确认保存';

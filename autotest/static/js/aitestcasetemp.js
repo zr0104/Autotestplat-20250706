@@ -1,5 +1,4 @@
 
-
 modURL = 'aitestcasetemp/modAitestcase/'
 modFieldNames = ['ai_testcase_code','ai_testcase_name',  'ai_testcase_step', 'ai_testcase_stepname', 'ai_testcase_expect_value', 'ai_testcase_real_value','ai_testcase_step_result','requirements_id']
 modRequiredFields = [0, 1, 2, 3,4]
@@ -122,6 +121,79 @@ function showMod(ele){
     ai_testcase_code = selectedRow.children[0].innerText
     ai_testcase_name = selectedRow.children[1].innerText
     requirements_id = selectedRow.children[5].innerText
+
+    // 初始化自定义下拉框
+    var dropdown = document.getElementById('modRequirementDropdown');
+    var reqInput = document.getElementById('modRequirementInput');
+    var reqArrow = document.getElementById('modRequirementArrow');
+    if (dropdown && reqInput) {
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+        reqInput.value = '';
+        reqArrow.textContent = '▼';
+
+        // 点击输入框切换下拉
+        reqInput.onclick = function(e) {
+            e.stopPropagation();
+            if (dropdown.style.display === 'none') {
+                dropdown.style.display = 'block';
+                reqArrow.textContent = '▲';
+            } else {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        // 点击外部关闭下拉
+        document.onclick = function(e) {
+            if (!dropdown.contains(e.target) && e.target !== reqInput) {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        // 加载需求列表
+        $.ajax({
+            url: '/autotest/requirements/getTableData/',
+            type: 'POST',
+            success: function(resp) {
+                if (resp && resp.data) {
+                    resp.data.forEach(function(item) {
+                        var div = document.createElement('div');
+                        div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px;';
+                        div.textContent = item[0] + ' - ' + (item[1] || '未命名需求');
+                        div.onmouseover = function() { this.style.backgroundColor = '#e8f4fd'; };
+                        div.onmouseout = function() { this.style.backgroundColor = '#fff'; };
+                        div.onclick = function(e) {
+                            e.stopPropagation();
+                            reqInput.value = this.textContent;
+                            dropdown.style.display = 'none';
+                            reqArrow.textContent = '▼';
+                        };
+                        dropdown.appendChild(div);
+                    });
+                }
+                // 设置当前需求ID显示
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                    // 尝试匹配需求名称
+                    if (resp && resp.data) {
+                        resp.data.forEach(function(item) {
+                            if (String(item[0]) === String(requirements_id)) {
+                                reqInput.value = item[0] + ' - ' + (item[1] || '未命名需求');
+                            }
+                        });
+                    }
+                }
+            },
+            error: function() {
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                }
+            }
+        });
+    }
+
     $.ajax({
         url: "/autotest/aitestcasetemp/showModAiTestcase/",
         data: JSON.stringify({
@@ -135,7 +207,6 @@ function showMod(ele){
         success: function (result) {
             $('#modModal').find('.modal-title').text('编辑测试用例：' + ai_testcase_code);
             document.getElementsByName('modInput')[0].value = ai_testcase_name;
-            document.getElementsByName('modInput')[1].value = requirements_id;
             var case_steps = result['case_step_list'].split(',');
             var objname = result['objname'].split(',');
             console.log(objname)
@@ -610,7 +681,12 @@ function modObjects(){
   id1 = id1.split("：")[1];
   var ai_testcase_name1 = document.getElementsByName('modInput')[0].value;
   moddataObj["ai_testcase_name"] = ai_testcase_name1
-  var requirements_id1 = document.getElementsByName('modInput')[1].value;
+  var reqInput = document.getElementById('modRequirementInput');
+  var requirements_id1 = reqInput ? reqInput.value : '';
+  // 提取纯ID（去掉 " - 需求名称" 部分）
+  if (requirements_id1.indexOf(' - ') > 0) {
+      requirements_id1 = requirements_id1.split(' - ')[0].trim();
+  }
   moddataObj["requirements_id"] = requirements_id1
   moddataObj["ai_testcase_name"] = ai_testcase_name1
   moddataObj["id1"] = id1

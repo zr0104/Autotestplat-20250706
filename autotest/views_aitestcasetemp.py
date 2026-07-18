@@ -229,6 +229,11 @@ def saveAiTestcaseFromChat(request):
         print(f"解析到 {len(steps)} 个步骤，{len(expected_results)} 个预期结果")
         print(f"将保存 {min_len} 条记录")
         
+        if min_len == 0:
+            print(f"解析失败：未匹配到有效的步骤或预期结果")
+            print(f"原始文本前500字符: {ai_testcase_result[:500]}")
+            return HttpResponse('保存失败：未能从内容中解析出测试步骤和预期结果，请检查AI生成的格式是否正确', status=400)
+        
         created_count = 0
         for i in range(min_len):
             # 使用 UUID 确保唯一性
@@ -318,7 +323,7 @@ def showRunAiTestcase(request):
         raw_data = json.loads(raw_data)
         id = raw_data['id1']
         name = raw_data['name1']
-        requirements_id = raw_data['requirements_id1']
+        requirements_id = raw_data.get('requirements_id1', '')
         result = AutotestplatAiTestcaseTemp.objects.filter(ai_testcase_code=id).first().ai_testcase_result
 
         case_info = {'id': id,

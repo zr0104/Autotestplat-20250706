@@ -42,17 +42,20 @@ def getWebView(request):
 def loadWebTestcaseTable(request):
     username = request.session.get('user', '')
     if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        items = AutotestplatWebTestcase.objects.all().values_list('web_testcase_code','web_testcase_name','web_testcase_result','tester','run_time','product_id','delete_flag','web_testcase_code_order').annotate(Count('id')).order_by('web_testcase_code_order')
+        qs = AutotestplatWebTestcase.objects.all()
     else:
         user_product_id = AuthUser.objects.filter(username=username).first().last_name
         if user_product_id:
-            items = AutotestplatWebTestcase.objects.filter(Q(product_id=user_product_id)).values_list('web_testcase_code', 'web_testcase_name',
-                                                                      'web_testcase_result', 'tester', 'run_time',
-                                                                      'product_id', 'delete_flag','web_testcase_code_order').annotate(Count('id')).order_by('web_testcase_code_order')
+            qs = AutotestplatWebTestcase.objects.filter(Q(product_id=user_product_id))
         else:
-            items = AutotestplatWebTestcase.objects.all().values_list('web_testcase_code', 'web_testcase_name',
-                                                                      'web_testcase_result', 'tester', 'run_time',
-                                                                      'product_id', 'delete_flag','web_testcase_code_order').annotate(Count('id')).order_by('web_testcase_code_order')
+            qs = AutotestplatWebTestcase.objects.all()
+    search_0 = request.POST.get('search_0', '').strip()
+    search_1 = request.POST.get('search_1', '').strip()
+    if search_0:
+        qs = qs.filter(web_testcase_name__icontains=search_0)
+    if search_1:
+        qs = qs.filter(web_testcase_result__icontains=search_1)
+    items = qs.values_list('web_testcase_code','web_testcase_name','web_testcase_result','tester','create_time','run_time','product_id','delete_flag','web_testcase_code_order').annotate(Count('id')).order_by('web_testcase_code_order')
     rst = []
     for item in items:
         arr = []
@@ -60,14 +63,14 @@ def loadWebTestcaseTable(request):
         tmp = []
         for tmp_id in tmp_ids:
             tmp.append(tmp_id[0])
-        if (item[5] == None or item[5] == ''):
+        if (item[6] == None or item[6] == ''):
             count = 0
         else:
-            count = tmp.count(int(item[5]))
+            count = tmp.count(int(item[6]))
         if count > 0:
-            product_name = AutotestplatProduct.objects.filter(id=int(item[5])).first().product_name
+            product_name = AutotestplatProduct.objects.filter(id=int(item[6])).first().product_name
             item_list = list(item)
-            item_list[5] = product_name
+            item_list[6] = product_name
             item = tuple(item_list)
         for j in item:
             arr.append(j)
@@ -148,6 +151,22 @@ def deleteWebtestcase(request):
     web_testcase_code = request.POST.get('web_testcase_code')
     AutotestplatWebTestcase.objects.filter(web_testcase_code=web_testcase_code).delete()
     return HttpResponse('200')
+
+@csrf_exempt
+def batchUpdateResult(request):
+    import json
+    data = json.loads(request.body)
+    codes = data.get('codes', [])
+    result = data.get('result', '未执行')
+    if not codes:
+        return JsonResponse({'status': 'error', 'message': '未选择任何用例'}, status=400)
+    now = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    for code in codes:
+        AutotestplatWebTestcase.objects.filter(web_testcase_code=code).update(
+            web_testcase_result=result,
+            run_time=now
+        )
+    return JsonResponse({'status': 'success', 'count': len(codes)})
 
 def showModWebTestcase(request):
     if request.method == "POST":

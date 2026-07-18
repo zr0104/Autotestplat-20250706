@@ -339,7 +339,7 @@ function webCaseTableDataInit(){
         info: false,
         lengthChange: false,
         searching: true,
-        order: [[7, "order"]],
+        order: [[7, "asc"]],
         columns: tableColumnsData,
         columnDefs: [
             {
@@ -349,6 +349,7 @@ function webCaseTableDataInit(){
         ]
     });
 }
+
 function run(e,tips="运行成功,请在测试报告中查看结果"){
   fieldValues =  e.getAttribute('data-fieldvalues');
   var intervalId = setInterval(function() {

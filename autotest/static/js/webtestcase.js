@@ -38,19 +38,14 @@ tableColumnsData = [
                     },
                     { data: 2,
                       searchable:true,
-                      render:function (data){
-                        if (data==='pass'){
-                            data='<a style=\'color:green;font-weight: bold\'>pass</a>'
-                            return data
-                        }
-                        else if (data==='failed'){
-                          data='<a style=\'color:red;font-weight: bold\'>failed</a>'
+                      render: function(data){
+                          if(data === 'pass'){
+                              return '<span style="color:green;font-weight:bold;">pass</span>'
+                          }else if(data === 'fail' || data === 'failed'){
+                              return '<span style="color:red;font-weight:bold;">' + data + '</span>'
+                          }
                           return data
-                        }
-                        else {
-                            return data
-                        }
-                      },
+                      }
                     },
                     { data: 3,
                       searchable:true,
@@ -59,9 +54,12 @@ tableColumnsData = [
                       searchable:true,
                     },
                     { data: 5,
+                      searchable:true,
+                    },
+                    { data: 6,
                         searchable:true,
                     },
-                    { data: 7,
+                    { data: 8,
                         searchable:true,
                     },
                     { data: null,
@@ -77,7 +75,12 @@ function infoInit(){
 }
 
 function tableSearchDataFunction(d){
-  return
+  var filters = $("[name=searchField]")
+  var searchData = {}
+  for(var i = 0; i < filters.length; i++){
+      searchData['search_' + i] = filters[i].value
+  }
+  return searchData
 }
 
 
@@ -214,7 +217,7 @@ function showMod(ele){
     selectedRow = ele.parentNode.parentNode
     web_testcase_code = selectedRow.children[0].innerText
     web_testcase_name = selectedRow.children[1].innerText
-    web_testcase_code_order = selectedRow.children[6].innerText
+    web_testcase_code_order = selectedRow.children[7].innerText
     $.ajax({
         url: "/autotest/webtestcase/showModWebTestcase/",
         data: JSON.stringify({

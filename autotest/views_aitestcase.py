@@ -47,13 +47,22 @@ def loadAiTestcaseTable(request):
         return JsonResponse({'data': []})
     
     if user_obj.is_superuser == 1:
-        items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
+        qs = AutotestplatAiTestcase.objects.all()
     else:
         user_product_id = user_obj.last_name
         if user_product_id:
-            items = AutotestplatAiTestcase.objects.filter(Q(product_id=user_product_id)).values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
+            qs = AutotestplatAiTestcase.objects.filter(Q(product_id=user_product_id))
         else:
-            items = AutotestplatAiTestcase.objects.all().values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
+            qs = AutotestplatAiTestcase.objects.all()
+
+    search_0 = request.POST.get('search_0', '').strip()
+    search_1 = request.POST.get('search_1', '').strip()
+    if search_0:
+        qs = qs.filter(ai_testcase_name__icontains=search_0)
+    if search_1:
+        qs = qs.filter(ai_testcase_result__icontains=search_1)
+
+    items = qs.values_list('ai_testcase_code','ai_testcase_name','ai_testcase_result','creator','create_time','product_id','requirements_id').annotate(Count('id')).order_by('-create_time')
 
     rst = []
     for item in items:
@@ -152,7 +161,6 @@ def addAitestcase(request):
        aitestcase_expect_value = ai_testcase_expect_value[i]
        aitestcase_real_value = ''
        aitestcase_step_result=''
-       time.sleep(2)
        AutotestplatAiTestcase.objects.create(id=id, ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,ai_testcase_result=ai_testcase_result,creator=username,product_id=product_id,requirements_id=requirements_id,ai_testcase_step=aitestcase_step,ai_testcase_stepname=aitestcase_stepname,ai_testcase_expect_value=aitestcase_expect_value,ai_testcase_real_value=aitestcase_real_value,ai_testcase_step_result=aitestcase_step_result,create_time=create_time,delete_flag=delete_flag)
     return HttpResponse('200')
 
@@ -223,7 +231,7 @@ def showRunAiTestcase(request):
         raw_data = json.loads(raw_data)
         id = raw_data['id1']
         name = raw_data['name1']
-        requirements_id = raw_data['requirements_id1']
+        requirements_id = raw_data.get('requirements_id1', '')
         result = AutotestplatAiTestcase.objects.filter(ai_testcase_code=id).first().ai_testcase_result
 
         case_info = {'id': id,
@@ -289,13 +297,11 @@ def modAitestcase(request):
         print(ai_testcase_name)
         delete_flag = 'N'
         AutotestplatAiTestcase.objects.filter(ai_testcase_code=ai_testcase_code).delete()
-        time.sleep(1)
         for i in range(len(raw_data['moddataObj']['modcaseStepList'])):
             id = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))
             testcase_step = raw_data['moddataObj']['modcaseStepList'][i]
             testcase_objname = raw_data['moddataObj']['modcaseStepList_objname'][i]
             testcase_findmethod = raw_data['moddataObj']['modcaseStepList_findmethod'][i]
-            time.sleep(1)
             modAiTestcase = AutotestplatAiTestcase(id=id,ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,
                                                ai_testcase_result=ai_testcase_result, creator=username,create_time=create_time,
                                                product_id=product_id, ai_testcase_step=testcase_step,
@@ -328,19 +334,19 @@ def copyAitestcase(request):
         ai_testcase_result = '未执行'
         create_time = str(time.strftime("%Y-%m-%d %H:%M:%S"))
         ai_testcase_name = raw_data['copydataObj']['ai_testcase_name']
+        requirements_id = raw_data['copydataObj'].get('requirements_id', '')
         delete_flag = 'N'
-        time.sleep(1)
         for i in range(len(raw_data['copydataObj']['copycaseStepList'])):
             id = str(datetime.now().strftime("%Y%m%d%H%M%S%f"))
             testcase_step = raw_data['copydataObj']['copycaseStepList'][i]
             testcase_objname = raw_data['copydataObj']['copycaseStepList_objname'][i]
             testcase_findmethod = raw_data['copydataObj']['copycaseStepList_findmethod'][i]
-            time.sleep(1)
             copyAiTestcase = AutotestplatAiTestcase(id=id,ai_testcase_code=ai_testcase_code,ai_testcase_name=ai_testcase_name,
                                                ai_testcase_result=ai_testcase_result, creator=username,create_time=create_time,
                                                product_id=product_id, ai_testcase_step=testcase_step,
                                                ai_testcase_stepname=testcase_objname,
                                                ai_testcase_expect_value=testcase_findmethod,
+                                               requirements_id=requirements_id,
                                                delete_flag=delete_flag)
             copyAiTestcase.save()
         return HttpResponse('200')
@@ -359,8 +365,22 @@ def runAitestcase(request):
     raw_data = json.loads(raw_data)
     ai_testcase_code = raw_data['rundataObj']['id1']
     ai_testcase_result = raw_data['rundataObj']['ai_testcase_result']
-    time.sleep(1)
     AutotestplatAiTestcase.objects.filter(ai_testcase_code=ai_testcase_code).update(ai_testcase_result=ai_testcase_result)
     return HttpResponse('200')
+
+
+@csrf_exempt
+def batchRunAitestcase(request):
+    if request.method == "POST":
+        username = request.session.get('user', '')
+        if not username:
+            return HttpResponse('401')
+        raw_data = json.loads(request.body)
+        codes = raw_data.get('codes', [])
+        ai_testcase_result = raw_data.get('ai_testcase_result', 'pass')
+        if not codes:
+            return HttpResponse('参数错误')
+        AutotestplatAiTestcase.objects.filter(ai_testcase_code__in=codes).update(ai_testcase_result=ai_testcase_result)
+        return HttpResponse('200')
 
 

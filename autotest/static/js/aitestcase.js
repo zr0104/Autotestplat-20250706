@@ -20,6 +20,21 @@ runRowIndex = [0, 1]
 delURL = 'aitestcase/delAitestcase/'
 delFieldNames = ['ai_testcase_code']
 
+// 覆盖 public.js 中的 showDelModal，修正复选框列导致的索引偏移
+function showDelModal(e){
+    selectedRow = e.parentNode.parentNode
+    var inputFields = $("[name=delInput]")
+    // children[0]=复选框, children[1]=用例编号, children[2]=用例名称
+    if(inputFields[0] && inputFields[0].tagName == "INPUT"){
+        inputFields[0].value = selectedRow.children[1].innerText
+    }
+    if(inputFields[1] && inputFields[1].tagName == "INPUT"){
+        inputFields[1].value = selectedRow.children[2].innerText
+    }
+    $("#deleteModal").modal('show')
+    window.event.stopPropagation()
+}
+
 runAiTestcaseBycode = 'aitestcase/run_aitestcase/'
 
 testcaseDetailRUL = 'getAitestcaseDetail/'
@@ -34,13 +49,33 @@ tableButtonOperation = "<a href=\"#\" class=\"#\" onclick=\"showRun(this)\"> <sp
                        "<a href=\"#\" class=\"#\" onclick=\"showCopy(this)\"> <span class=\"badge badge-blue \" style=\"width: 40px;font-size: 12px\">复制</span> </a>" +
                        "<a href=\"#\" class=\"#\" onclick=\"showDelModal(this)\"> <span class=\"badge badge-danger \" style=\"width: 40px;font-size: 12px\">删除</span> </a>"
 tableItemsPerPage = 10
+var selectedCodes = [];
+
 tableColumnsData = [
+                    { data: null,
+                      orderable: false,
+                      searchable: false,
+                      render: function(data, type, row) {
+                        var checked = selectedCodes.indexOf(row[0]) >= 0 ? ' checked' : '';
+                        return '<input type="checkbox" class="row-checkbox" value="' + row[0] + '"' + checked + ' style="cursor:pointer;">';
+                      },
+                      width: '40px'
+                    },
                     { data: 0 },
                     { data: 1,
                       searchable:true,
                     },
                     { data: 2,
                       searchable:true,
+                      render: function(data, type, row) {
+                        var val = data || '未执行';
+                        var color = val === 'pass' ? '#28a745' : val === 'fail' ? '#dc3545' : '#6c757d';
+                        return '<select class="form-control form-control-sm result-select" data-code="' + row[0] + '" style="padding:2px 4px;font-size:12px;border-color:' + color + ';color:' + color + ';font-weight:bold;">' +
+                          '<option value="未执行"' + (val === '未执行' ? ' selected' : '') + '>未执行</option>' +
+                          '<option value="pass"' + (val === 'pass' ? ' selected' : '') + '>pass</option>' +
+                          '<option value="fail"' + (val === 'fail' ? ' selected' : '') + '>fail</option>' +
+                          '</select>';
+                      }
                     },
                     { data: 3,
                       searchable:true,
@@ -63,11 +98,58 @@ tableColumnsData = [
                 ]
 
 function infoInit(){
+    selectedCodes = [];
     aiCaseTableDataInit()
+    table.on('draw', function() {
+        updateSelectedCount();
+        var selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = (selectedCodes.length > 0 && selectedCodes.length === table.rows().count());
+        }
+    });
+    $('#table tbody').on('change', '.row-checkbox', function() {
+        var code = $(this).val();
+        var isChecked = $(this).is(':checked');
+        var idx = selectedCodes.indexOf(code);
+
+        if (isChecked && idx < 0) {
+            selectedCodes.push(code);
+        } else if (!isChecked && idx >= 0) {
+            selectedCodes.splice(idx, 1);
+        }
+
+        updateSelectedCount();
+        var selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = (selectedCodes.length > 0 && selectedCodes.length === table.rows().count());
+        }
+    });
+
+    $('#table tbody').on('change', '.result-select', function() {
+        var code = $(this).data('code');
+        var result = $(this).val();
+        var color = result === 'pass' ? '#28a745' : result === 'fail' ? '#dc3545' : '#6c757d';
+        $(this).css({'border-color': color, 'color': color});
+        $.ajax({
+            url: appURL + 'aitestcase/runAitestcase/',
+            type: 'POST',
+            contentType: 'application/json;charset=utf-8',
+            data: JSON.stringify({rundataObj: {id1: code, ai_testcase_result: result}}),
+            success: function(rst) {
+                if (rst !== '200') alert('更新失败：' + rst);
+            },
+            error: function() { alert('更新失败！'); }
+        });
+    });
 }
 
 function tableSearchDataFunction(d){
-  return
+  var filters = $("[name=searchField]")
+  var searchData = {}
+  for(var i = 0; i < filters.length; i++){
+      searchData['search_' + i] = filters[i].value
+  }
+  return searchData
 }
 
 
@@ -109,6 +191,7 @@ copycaseStepInput_innerHtml = "<div class=\"input-group\" style=\"margin-bottom:
 <button class=\"btn btn-danger\" style=\"width: 40px; margin-left: 5px;\" onclick=\"subCopyCaseStepInput(this)\"> - </button>\
 </div>"
 
+
 function showAdd(){
   var addModal = $("#addModal")
   var inputFields = addModal.find("[name=addInput]")
@@ -136,9 +219,77 @@ function showAdd(){
 
 function showMod(ele){
     selectedRow = ele.parentNode.parentNode
-    ai_testcase_code = selectedRow.children[0].innerText
-    ai_testcase_name = selectedRow.children[1].innerText
-    requirements_id = selectedRow.children[6].innerText
+    ai_testcase_code = selectedRow.children[1].innerText
+    ai_testcase_name = selectedRow.children[2].innerText
+    requirements_id = selectedRow.children[7].innerText
+
+    // 初始化自定义下拉框
+    var dropdown = document.getElementById('modRequirementDropdown');
+    var reqInput = document.getElementById('modRequirementInput');
+    var reqArrow = document.getElementById('modRequirementArrow');
+    if (dropdown && reqInput) {
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+        reqInput.value = '';
+        reqArrow.textContent = '▼';
+
+        reqInput.onclick = function(e) {
+            e.stopPropagation();
+            if (dropdown.style.display === 'none') {
+                dropdown.style.display = 'block';
+                reqArrow.textContent = '▲';
+            } else {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        document.onclick = function(e) {
+            if (!dropdown.contains(e.target) && e.target !== reqInput) {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        $.ajax({
+            url: '/autotest/requirements/getTableData/',
+            type: 'POST',
+            success: function(resp) {
+                if (resp && resp.data) {
+                    resp.data.forEach(function(item) {
+                        var div = document.createElement('div');
+                        div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px;';
+                        div.textContent = item[0] + ' - ' + (item[1] || '未命名需求');
+                        div.onmouseover = function() { this.style.backgroundColor = '#e8f4fd'; };
+                        div.onmouseout = function() { this.style.backgroundColor = '#fff'; };
+                        div.onclick = function(e) {
+                            e.stopPropagation();
+                            reqInput.value = this.textContent;
+                            dropdown.style.display = 'none';
+                            reqArrow.textContent = '▼';
+                        };
+                        dropdown.appendChild(div);
+                    });
+                }
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                    if (resp && resp.data) {
+                        resp.data.forEach(function(item) {
+                            if (String(item[0]) === String(requirements_id)) {
+                                reqInput.value = item[0] + ' - ' + (item[1] || '未命名需求');
+                            }
+                        });
+                    }
+                }
+            },
+            error: function() {
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                }
+            }
+        });
+    }
+
     $.ajax({
         url: "/autotest/aitestcase/showModAiTestcase/",
         data: JSON.stringify({
@@ -152,7 +303,6 @@ function showMod(ele){
         success: function (result) {
             $('#modModal').find('.modal-title').text('编辑测试用例：' + ai_testcase_code);
             document.getElementsByName('modInput')[0].value = ai_testcase_name;
-            document.getElementsByName('modInput')[1].value = requirements_id;
             var case_steps = result['case_step_list'].split(',');
             var objname = result['objname'].split(',');
             console.log(objname)
@@ -188,8 +338,77 @@ function showMod(ele){
 
 function showCopy(ele){
     selectedRow = ele.parentNode.parentNode
-    ai_testcase_code = selectedRow.children[0].innerText
-    ai_testcase_name = selectedRow.children[1].innerText
+    ai_testcase_code = selectedRow.children[1].innerText
+    ai_testcase_name = selectedRow.children[2].innerText
+    requirements_id = selectedRow.children[7] ? selectedRow.children[7].innerText : '';
+
+    // 初始化自定义下拉框
+    var dropdown = document.getElementById('copyRequirementDropdown');
+    var reqInput = document.getElementById('copyRequirementInput');
+    var reqArrow = document.getElementById('copyRequirementArrow');
+    if (dropdown && reqInput) {
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+        reqInput.value = '';
+        reqArrow.textContent = '▼';
+
+        reqInput.onclick = function(e) {
+            e.stopPropagation();
+            if (dropdown.style.display === 'none') {
+                dropdown.style.display = 'block';
+                reqArrow.textContent = '▲';
+            } else {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        document.onclick = function(e) {
+            if (!dropdown.contains(e.target) && e.target !== reqInput) {
+                dropdown.style.display = 'none';
+                reqArrow.textContent = '▼';
+            }
+        };
+
+        $.ajax({
+            url: '/autotest/requirements/getTableData/',
+            type: 'POST',
+            success: function(resp) {
+                if (resp && resp.data) {
+                    resp.data.forEach(function(item) {
+                        var div = document.createElement('div');
+                        div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px;';
+                        div.textContent = item[0] + ' - ' + (item[1] || '未命名需求');
+                        div.onmouseover = function() { this.style.backgroundColor = '#e8f4fd'; };
+                        div.onmouseout = function() { this.style.backgroundColor = '#fff'; };
+                        div.onclick = function(e) {
+                            e.stopPropagation();
+                            reqInput.value = this.textContent;
+                            dropdown.style.display = 'none';
+                            reqArrow.textContent = '▼';
+                        };
+                        dropdown.appendChild(div);
+                    });
+                }
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                    if (resp && resp.data) {
+                        resp.data.forEach(function(item) {
+                            if (String(item[0]) === String(requirements_id)) {
+                                reqInput.value = item[0] + ' - ' + (item[1] || '未命名需求');
+                            }
+                        });
+                    }
+                }
+            },
+            error: function() {
+                if (requirements_id && requirements_id.trim()) {
+                    reqInput.value = requirements_id;
+                }
+            }
+        });
+    }
+
     $.ajax({
         url: "/autotest/aitestcase/showCopyAiTestcase/",
         data: JSON.stringify({
@@ -237,9 +456,10 @@ function showCopy(ele){
 
 function showRun(ele){
     selectedRow = ele.parentNode.parentNode
-    ai_testcase_code = selectedRow.children[0].innerText
-    ai_testcase_name = selectedRow.children[1].innerText
-    ai_testcase_result = selectedRow.children[2].innerText
+    ai_testcase_code = selectedRow.children[1].innerText
+    ai_testcase_name = selectedRow.children[2].innerText
+    var resultSelect = selectedRow.children[3].querySelector('select');
+    ai_testcase_result = resultSelect ? resultSelect.value : '未执行';
     $.ajax({
         url: "/autotest/aitestcase/showRunAiTestcase/",
         data: JSON.stringify({
@@ -430,7 +650,8 @@ function copySave(tips="复制成功"){
   $.ajax({
       url: appURL + copyURL,
       type: "POST",
-      aysnc: false,
+      async: false,
+      contentType: 'application/json;charset=utf-8',
       data: copyObjects(),
       success: (rst) => {
           if(rst === '200'){
@@ -627,7 +848,11 @@ function modObjects(){
   id1 = id1.split("：")[1];
   var ai_testcase_name1 = document.getElementsByName('modInput')[0].value;
   moddataObj["ai_testcase_name"] = ai_testcase_name1
-  var requirements_id1 = document.getElementsByName('modInput')[1].value;
+  var reqInput = document.getElementById('modRequirementInput');
+  var requirements_id1 = reqInput ? reqInput.value : '';
+  if (requirements_id1.indexOf(' - ') > 0) {
+      requirements_id1 = requirements_id1.split(' - ')[0].trim();
+  }
   moddataObj["requirements_id"] = requirements_id1
   moddataObj["ai_testcase_name"] = ai_testcase_name1
   moddataObj["id1"] = id1
@@ -680,6 +905,12 @@ function copyObjects(){
 
   var id1 = $('#copyModal').find('.modal-title')[0].textContent
   id1 = id1.split("：")[1];
+  var reqInput = document.getElementById('copyRequirementInput');
+  var requirements_id1 = reqInput ? reqInput.value : '';
+  if (requirements_id1.indexOf(' - ') > 0) {
+      requirements_id1 = requirements_id1.split(' - ')[0].trim();
+  }
+  copydataObj["requirements_id"] = requirements_id1
   copydataObj["id1"] = id1
   copydataObj["copycaseStepList"] = copycaseStepList
   copydataObj["copycaseStepList_objname"] = copycaseStepList_objname
@@ -736,4 +967,58 @@ function runObjects(){
   rundataObj["runcaseStepList_objname"] = runcaseStepList_objname
   rundataObj["runcaseStepList_findmethod"] = runcaseStepList_findmethod
   return JSON.stringify({rundataObj})
+}
+
+function toggleSelectAll(el) {
+    var allCodes = [];
+    table.rows().every(function() {
+        var data = this.data();
+        if (data) allCodes.push(data[0]);
+    });
+    if (el.checked) {
+        for (var i = 0; i < allCodes.length; i++) {
+            if (selectedCodes.indexOf(allCodes[i]) < 0) selectedCodes.push(allCodes[i]);
+        }
+    } else {
+        selectedCodes = [];
+    }
+    updateSelectedCount();
+
+    // 直接操作DOM确保视觉状态同步
+    $('#table tbody .row-checkbox').each(function() {
+        $(this).prop('checked', el.checked);
+    });
+}
+
+function updateSelectedCount() {
+    var countEl = document.getElementById('selectedCount');
+    if (countEl) {
+        countEl.textContent = '已选 ' + selectedCodes.length + ' / 共 ' + table.rows().count() + ' 条';
+    }
+}
+
+function batchRunWithStatus() {
+    if (selectedCodes.length === 0) {
+        alert('请先勾选需要批量执行的用例！');
+        return;
+    }
+    var result = document.getElementById('batchResultSelect').value;
+    $.ajax({
+        url: appURL + 'aitestcase/batchRunAitestcase/',
+        type: 'POST',
+        contentType: 'application/json;charset=utf-8',
+        data: JSON.stringify({ codes: selectedCodes, ai_testcase_result: result }),
+        success: function(rst) {
+            if (rst === '200') {
+                alert('批量更新成功！已更新 ' + selectedCodes.length + ' 条用例结果为：' + result);
+                selectedCodes = [];
+                table.ajax.reload(null, false);
+            } else {
+                alert('批量更新失败：' + rst);
+            }
+        },
+        error: function(xhr) {
+            alert('批量更新失败！');
+        }
+    });
 }

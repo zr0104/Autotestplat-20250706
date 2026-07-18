@@ -56,18 +56,30 @@ Auther:：Sen;  Version：Autotestplat-V6.0
                 <button class="btn btn-primary btn-sm" style="margin-left: 20px;width: 57px;height: 34px;font-size: 14px" onclick="showAdd()">新增</button>
             </div>
 
+            <div class="row" style="padding: 0px 0px; margin: 5px 0; display: flex; align-items: center;" id="batchActions">
+                <span style="font-size: 13px; margin-right: 10px;">批量操作：</span>
+                <select id="batchResultSelect" class="form-control" style="width: 120px; height: 34px; font-size: 13px; margin-right: 10px;">
+                    <option value="未执行">未执行</option>
+                    <option value="pass">pass</option>
+                    <option value="fail">fail</option>
+                </select>
+                <button class="btn btn-success btn-sm" style="width: 100px; height: 34px; font-size: 13px; margin-right: 15px;" onclick="batchRunWithStatus()">批量执行</button>
+                <span id="selectedCount" style="font-size: 13px; color: #666;">已选 0 / 共 0 条</span>
+            </div>
+
             <hr>
             <table id="table" class="table table-hover" style="width:100%; text-align: left;  border-bottom: solid; border-width: 0.5px; border-color: #0003;" data-sort="false">
                 <thead>
                     <tr>
-                        <th class="dt-head-center" style="width: 7%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">用例编号</th>
-                        <th class="dt-head-center" style="width: 14%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">用例名称</th>
-                        <th class="dt-head-center" style="width: 6%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">测试结果</th>
-                        <th class="dt-head-center" style="width: 6%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">创建人</th>
-                        <th class="dt-head-center" style="width: 8%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">创建时间</th>
-                        <th class="dt-head-center" style="width: 7%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">产品</th>
-                        <th class="dt-head-center" style="width: 7%; text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">关联需求id</th>
-                        <th class="dt-head-center" style="width: 14%;text-align: left; line-height: 0px;padding-top: 0px;font-weight: bold;">操作</th>
+                        <th class="dt-head-center" style="width: 4%; text-align: center; font-weight: bold;"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                        <th class="dt-head-center" style="width: 12%; text-align: left; font-weight: bold;">用例编号</th>
+                        <th class="dt-head-center" style="width: 16%; text-align: left; font-weight: bold;">用例名称</th>
+                        <th class="dt-head-center" style="width: 10%; text-align: left; font-weight: bold; white-space: nowrap;">测试结果</th>
+                        <th class="dt-head-center" style="width: 8%; text-align: left; font-weight: bold; white-space: nowrap;">创建人</th>
+                        <th class="dt-head-center" style="width: 13%; text-align: left; font-weight: bold;">创建时间</th>
+                        <th class="dt-head-center" style="width: 8%; text-align: left; font-weight: bold;">产品</th>
+                        <th class="dt-head-center" style="width: 8%; text-align: left; font-weight: bold;">需求ID</th>
+                        <th class="dt-head-center" style="width: 14%;text-align: left; font-weight: bold;">操作</th>
                     </tr>
                 </thead>
             </table>
@@ -130,7 +142,11 @@ Auther:：Sen;  Version：Autotestplat-V6.0
                             </div>
                             <div class="input-group" style="margin-bottom: 15px;">
                                 <span class="input-group-text" style="width: 110px; padding-left: 5px;"><span style="color: red;">* </span>需求ID</span>
-                                <input style="max-width: 920px" name="modInput" class="form-control" placeholder="--请输入--">
+                                <div style="position: relative; max-width: 920px; flex: 1;">
+                                    <input id="modRequirementInput" name="modInput" class="form-control" placeholder="--请选择或搜索需求--" autocomplete="off" readonly style="cursor: pointer; padding-right: 30px;">
+                                    <span id="modRequirementArrow" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: #666;">▼</span>
+                                    <div id="modRequirementDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-top: none; z-index: 9999; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                </div>
                             </div>
                             <div class="row">
                                   <thead>
@@ -168,6 +184,14 @@ Auther:：Sen;  Version：Autotestplat-V6.0
                             <div class="input-group" style="margin-bottom: 15px;">
                                 <span class="input-group-text" style="width: 110px; padding-left: 5px;"><span style="color: red;">* </span>用例名称</span>
                                 <input style="max-width: 920px" name="copyInput" class="form-control" placeholder="--请输入--">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <span class="input-group-text" style="width: 110px; padding-left: 5px;">需求ID</span>
+                                <div style="position: relative; max-width: 920px; flex: 1;">
+                                    <input id="copyRequirementInput" name="copyInput" class="form-control" placeholder="--请选择或搜索需求--" autocomplete="off" readonly style="cursor: pointer; padding-right: 30px;">
+                                    <span id="copyRequirementArrow" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 12px; color: #666;">▼</span>
+                                    <div id="copyRequirementDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-top: none; z-index: 9999; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                </div>
                             </div>
                             <div class="row">
                                   <thead>

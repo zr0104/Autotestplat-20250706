@@ -10,7 +10,7 @@
     
     <h1 style="font-size: 24px;color:green;text-align:center;">Web UI自动化测试报告</h1><br>
                 <ul class="headline" style="margin-left: -20px">
-                    <li>测试报告ID：<span style="font-size: 16px">1783480918 </span></li>
+                    <li>测试报告ID：<span style="font-size: 16px">1784376959 </span></li>
                 </ul>
                 <ul class="headline" style="margin-left: -20px">
                     <br>
@@ -18,19 +18,19 @@
                 </ul>
                 <ul class="headline" style="margin-left: -20px">
                     <br>
-                    <li>测试用例：<span style="font-size: 16px">登录Autotestplat系统-Copy </span></li>
+                    <li>测试用例：<span style="font-size: 16px">新增WebUI用例 </span></li>
                 </ul>
                 <ul class="headline" style="margin-left: -20px;">
                     <br>
-                    <li>步骤总数： <span id="testcase_all_count" style="font-size: 16px"> 4</span>
-                    &nbsp;&nbsp;通过： <span style="font-size: 16px;color: blue"> 4</span>
-                    &nbsp;&nbsp;失败：<span style="font-size: 16px;color: red"> 0</span>
+                    <li>步骤总数： <span id="testcase_all_count" style="font-size: 16px"> 13</span>
+                    &nbsp;&nbsp;通过： <span style="font-size: 16px;color: blue"> 5</span>
+                    &nbsp;&nbsp;失败：<span style="font-size: 16px;color: red"> 8</span>
                    &nbsp;&nbsp;未执行： <span style="font-size: 16px;color: lightgrey"> 0</span>
-                    &nbsp;&nbsp;成功率： <span style="font-size: 16px"> 100%</span></li>
+                    &nbsp;&nbsp;成功率： <span style="font-size: 16px"> 38%</span></li>
                 </ul>
                 <ul class="headline" style="margin-left: -20px">
                     <br>
-                    <li>测试时间： <span style="font-size: 14px;font-weight: normal"> 2026-07-08 11:21:59</span></li>
+                    <li>测试时间： <span style="font-size: 14px;font-weight: normal"> 2026-07-18 20:15:59</span></li>
                 </ul>
     <br>
     <br>
@@ -50,43 +50,315 @@
         <tbody>
             <tr>
               <td>1</td>
-              <td>web_start</td>
-              <td>find_loginIndex</td>
-              <td>http://127.0.0.1:8000</td>
-              <td>web_start</td>
-              <td style="color:green;font-weight:bold;">通过</td>
-              <td>1.386</td>
-              <td style="word-break:break-all;"></td>
+              <td>sendkey</td>
+              <td>find_element_by_id</td>
+              <td>caseStep_testdata</td>
+              <td>sendkey</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>0.263</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="caseStep_testdata"]"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
           </tr>
 <tr>
               <td>2</td>
+              <td>click</td>
+              <td>find_element_by_xpath</td>
+              <td>/html/body/div[3]/div/div/div[3]/button[2]</td>
+              <td>click</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>0.327</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"xpath","selector":"/html/body/div[3]/div/div/div[3]/button[2]"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>3</td>
+              <td>web_start</td>
+              <td>find_element_by_id</td>
+              <td>http://127.0.0.1:8000</td>
+              <td>web_start</td>
+              <td style="color:green;font-weight:bold;">通过</td>
+              <td>3.158</td>
+              <td style="word-break:break-all;"></td>
+          </tr>
+<tr>
+              <td>4</td>
               <td>sendkey</td>
               <td>find_element_by_id</td>
               <td>userName</td>
               <td>sendkey</td>
               <td style="color:green;font-weight:bold;">通过</td>
-              <td>0.549</td>
+              <td>0.295</td>
               <td style="word-break:break-all;"></td>
           </tr>
 <tr>
-              <td>3</td>
+              <td>5</td>
               <td>sendkey</td>
               <td>find_element_by_id</td>
               <td>password</td>
               <td>sendkey</td>
               <td style="color:green;font-weight:bold;">通过</td>
-              <td>0.666</td>
+              <td>0.39</td>
               <td style="word-break:break-all;"></td>
           </tr>
 <tr>
-              <td>4</td>
+              <td>6</td>
               <td>click</td>
               <td>find_element_by_id</td>
               <td>loginBtn</td>
               <td>click</td>
               <td style="color:green;font-weight:bold;">通过</td>
-              <td>0.738</td>
+              <td>0.487</td>
               <td style="word-break:break-all;"></td>
+          </tr>
+<tr>
+              <td>7</td>
+              <td>click</td>
+              <td>find_element_by_xpath</td>
+              <td>/html/body/div[1]/div/ul/li[10]/a</td>
+              <td>click</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>10.611</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"xpath","selector":"/html/body/div[1]/div/ul/li[10]/a"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>8</td>
+              <td>click</td>
+              <td>find_element_by_id</td>
+              <td>add</td>
+              <td>click</td>
+              <td style="color:green;font-weight:bold;">通过</td>
+              <td>0.749</td>
+              <td style="word-break:break-all;"></td>
+          </tr>
+<tr>
+              <td>9</td>
+              <td>sendkey</td>
+              <td>find_element_by_name</td>
+              <td>addInput</td>
+              <td>sendkey</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>10.824</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"css selector","selector":"[name="addInput"]"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>10</td>
+              <td>sendkey</td>
+              <td>find_element_by_id</td>
+              <td>caseStep_objname</td>
+              <td>sendkey</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>10.925</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="caseStep_objname"]"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>11</td>
+              <td>sendkey</td>
+              <td>find_element_by_id</td>
+              <td>caseStep_evelement</td>
+              <td>sendkey</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>11.041</td>
+              <td style="word-break:break-all;">Message: no such element: Unable to locate element: {"method":"css selector","selector":"[id="caseStep_evelement"]"}
+  (Session info: chrome=149.0.7827.200); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8c1aad]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>12</td>
+              <td>sendkey</td>
+              <td>find_element_by_id</td>
+              <td>caseStep_testdata</td>
+              <td>sendkey</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>8.574</td>
+              <td style="word-break:break-all;">Message: invalid session id: session deleted as the browser has closed the connection
+from disconnected: unable to send message to renderer
+  (Session info: chrome=149.0.7827.200)
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed86793d]
+	chromedriver!(No symbol) [0x7ff7ed8533d0]
+	chromedriver!(No symbol) [0x7ff7ed85332c]
+	chromedriver!(No symbol) [0x7ff7ed851b89]
+	chromedriver!(No symbol) [0x7ff7ed85273f]
+	chromedriver!(No symbol) [0x7ff7ed86d236]
+	chromedriver!(No symbol) [0x7ff7ed86dd7b]
+	chromedriver!(No symbol) [0x7ff7ed872875]
+	chromedriver!(No symbol) [0x7ff7ed87293f]
+	chromedriver!(No symbol) [0x7ff7ed8c122a]
+	chromedriver!(No symbol) [0x7ff7ed8c1dac]
+	chromedriver!(No symbol) [0x7ff7ed9127d7]
+	chromedriver!(No symbol) [0x7ff7ed90f39b]
+	chromedriver!(No symbol) [0x7ff7ed8b401c]
+	chromedriver!(No symbol) [0x7ff7ed8b4f43]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d744+1e0c4]
+	chromedriver!GetHandleVerifier [0x7ff7edd2d8d4+1e254]
+	chromedriver!GetHandleVerifier [0x7ff7edd11447+1dc7]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
+          </tr>
+<tr>
+              <td>13</td>
+              <td>click</td>
+              <td>find_element_by_xpath</td>
+              <td>/html/body/div[3]/div/div/div[3]/button[2]</td>
+              <td>click</td>
+              <td style="color:red;font-weight:bold;">失败</td>
+              <td>0.683</td>
+              <td style="word-break:break-all;">Message: invalid session id
+Stacktrace:
+	chromedriver!GetHandleVerifier [0x7ff7edd23fa5+14925]
+	chromedriver!GetHandleVerifier [0x7ff7edd24000+14980]
+	chromedriver!(No symbol) [0x7ff7ed867726]
+	chromedriver!(No symbol) [0x7ff7ed8b3083]
+	chromedriver!(No symbol) [0x7ff7ed8ea2d2]
+	chromedriver!(No symbol) [0x7ff7ed8e40d2]
+	chromedriver!(No symbol) [0x7ff7ed8e3892]
+	chromedriver!(No symbol) [0x7ff7ed8303e5]
+	chromedriver!GetHandleVerifier [0x7ff7ee307591+5f7f11]
+	chromedriver!GetHandleVerifier [0x7ff7ee301902+5f2282]
+	chromedriver!GetHandleVerifier [0x7ff7ee327115+617a95]
+	chromedriver!GetHandleVerifier [0x7ff7edd41dce+3274e]
+	chromedriver!GetHandleVerifier [0x7ff7edd4a82c+3b1ac]
+	chromedriver!(No symbol) [0x7ff7ed82f188]
+	chromedriver!GetHandleVerifier [0x7ff7ee4d7b58+7c84d8]
+	KERNEL32!BaseThreadInitThunk [0x7ffcc0fc7374+14]
+	ntdll!RtlUserThreadStart [0x7ffcc23dcc91+21]
+</td>
           </tr>
         </tbody>
     </table>

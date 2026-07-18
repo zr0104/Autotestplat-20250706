@@ -31,52 +31,52 @@ def getWebReportView(request):
 def loadWebReport(request):
     """加载Web测试报告列表数据"""
     username = request.session.get('user', '')
+    search_0 = request.POST.get('search_0', '').strip()
+    search_1 = request.POST.get('search_1', '').strip()
+    search_2 = request.POST.get('search_2', '').strip()
     
     if AuthUser.objects.filter(username=username).first().is_superuser == 1:
-        # 获取所有唯一的 report_id
         unique_reports = AutotestplatWebTestResult.objects.values_list('report_id', flat=True).distinct()
-        
-        rst = []
-        for report_id in unique_reports:
-            # 获取该报告的第一条记录作为代表
-            first_record = AutotestplatWebTestResult.objects.filter(report_id=report_id).first()
-            if first_record:
-                # 统计该报告的步骤数量
-                step_count = AutotestplatWebTestResult.objects.filter(report_id=report_id).count()
-                rst.append([
-                    first_record.report_id,
-                    first_record.product_id,
-                    first_record.product_name,
-                    first_record.testcase_name,
-                    first_record.date_time,
-                    first_record.result,
-                    step_count
-                ])
-        
-        # 按执行时间排序
-        rst.sort(key=lambda x: x[4] or '', reverse=True)
     else:
         product_id_filter = AuthUser.objects.filter(username=username).first().last_name
-        
-        # 获取该产品的所有唯一 report_id
         unique_reports = AutotestplatWebTestResult.objects.filter(product_id=product_id_filter).values_list('report_id', flat=True).distinct()
-        
-        rst = []
-        for report_id in unique_reports:
+    
+    if search_0:
+        unique_reports = [r for r in unique_reports if search_0 in str(r)]
+    
+    rst = []
+    for report_id in unique_reports:
+        if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+            first_record = AutotestplatWebTestResult.objects.filter(report_id=report_id).first()
+        else:
             first_record = AutotestplatWebTestResult.objects.filter(report_id=report_id, product_id=product_id_filter).first()
-            if first_record:
+        if first_record:
+            if search_1 and search_1 not in (first_record.testcase_name or ''):
+                continue
+            if search_2 and search_2 not in (first_record.date_time or ''):
+                continue
+            if AuthUser.objects.filter(username=username).first().is_superuser == 1:
+                step_count = AutotestplatWebTestResult.objects.filter(report_id=report_id).count()
+                pass_count = AutotestplatWebTestResult.objects.filter(report_id=report_id, result='pass').count()
+            else:
                 step_count = AutotestplatWebTestResult.objects.filter(report_id=report_id, product_id=product_id_filter).count()
-                rst.append([
-                    first_record.report_id,
-                    first_record.product_id,
-                    first_record.product_name,
-                    first_record.testcase_name,
-                    first_record.date_time,
-                    first_record.result,
-                    step_count
-                ])
-        
-        rst.sort(key=lambda x: x[4] or '', reverse=True)
+                pass_count = AutotestplatWebTestResult.objects.filter(report_id=report_id, product_id=product_id_filter, result='pass').count()
+            if step_count > 0:
+                pass_rate = '{:.0%}'.format(pass_count / step_count)
+            else:
+                pass_rate = '0%'
+            rst.append([
+                first_record.report_id,
+                first_record.product_id,
+                first_record.product_name,
+                first_record.testcase_name,
+                first_record.date_time,
+                first_record.result,
+                pass_rate,
+                step_count
+            ])
+    
+    rst.sort(key=lambda x: x[4] or '', reverse=True)
     
     realRst = {'data': rst}
     return JsonResponse(realRst)
